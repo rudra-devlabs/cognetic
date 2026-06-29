@@ -1,0 +1,163 @@
+# =============================================================================
+# Cognetics — .gitignore
+# Tauri 2.x + Vite + Rust + Vanilla JS
+# =============================================================================
+
+# =============================================================================
+# Node / npm
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+.npm/
+
+# =============================================================================
+# Vite / Build Output
+# =============================================================================
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# =============================================================================
+# Rust / Cargo
+# =============================================================================
+src-tauri/target/
+**/*.rs.bk
+Cargo.lock.bk
+
+# =============================================================================
+# Tauri Build Artifacts
+# =============================================================================
+src-tauri/gen/
+src-tauri/WixTools/
+*.msi
+*.dmg
+*.deb
+*.AppImage
+*.app
+*.exe
+vs_buildtools.*
+# =============================================================================
+# Environment & Secrets 
+# =============================================================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+*.key
+*.pem
+secrets.json
+
+# =============================================================================
+# OS Generated Files
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+*.stackdump
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# IDE & Editor Files
+# =============================================================================
+
+# VS Code — keep shared workspace settings, ignore personal/machine-specific
+.vscode/*
+!.vscode/extensions.json
+.history/
+*.vsix
+
+# JetBrains (IntelliJ, CLion, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# Sublime Text
+*.sublime-workspace
+
+# Vim / Neovim
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Session.vim
+.netrwhist
+
+# =============================================================================
+# Logs & Diagnostics
+# =============================================================================
+logs/
+*.log
+*.log.*
+*.pid
+*.seed
+*.pid.lock
+
+# =============================================================================
+# Testing & Coverage
+# =============================================================================
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# =============================================================================
+# Temporary / Cache Files
+# =============================================================================
+tmp/
+temp/
+.tmp/
+.cache/
+*.tmp
+*.bak
+*.orig
+.eslintcache
+.stylelintcache
+.parcel-cache/
+.turbo/
+
+# =============================================================================
+# Antigravity / AI Agent Data (local dev artifacts — not for repo)
+# =============================================================================
+.gemini/
+.agents/

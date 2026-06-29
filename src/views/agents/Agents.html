@@ -1,0 +1,251 @@
+<div class="view-agents">
+  <div class="top-nav">
+     <div class="nav-left">
+       <button class="back-btn" id="agents-back-btn">
+         <i data-lucide="arrow-left" class="icon-svg"></i>
+       </button>
+       <span class="logo-text">Cognetic</span>
+     </div>
+     <div class="nav-tabs">
+       <button class="nav-tab" id="nav-integrations-tab">Integrations</button>
+       <button class="nav-tab active" id="nav-agents-tab">Agents</button>
+       <button class="nav-tab">Channels</button>
+       <button class="nav-tab">Connectors</button>
+       <button class="nav-tab">Browser</button>
+       <button class="nav-tab">Settings</button>
+     </div>
+     <div class="nav-right">
+       <i data-lucide="help-circle" class="icon-svg"></i>
+       <i data-lucide="gift" class="icon-svg"></i>
+       <button id="nav-right-home-btn" style="background:none; border:none; padding:0; display:flex; align-items:center; cursor:pointer;">
+         <i data-lucide="home" class="icon-svg"></i>
+       </button>
+     </div>
+  </div>
+  
+  <div id="agents-view" class="main-view active-view">
+    <div class="agents-layout">
+      <div class="agents-sidebar">
+         <button class="sub-tab active" data-tab="models">Models</button>
+         <button class="sub-tab" data-tab="skills">Skills</button>
+         <button class="sub-tab" data-tab="subagents">Sub Agents</button>
+         <button class="sub-tab" data-tab="memory">Memory</button>
+      </div>
+      
+      <!-- Models: secondary list + config panel -->
+      <div id="tab-models" class="tab-content active-tab">
+        <div class="models-list" id="sidebar-models-list">
+           <!-- dynamically generated from providers.json -->
+        </div>
+        
+        <div class="config-panel premium-layout">
+          <div class="config-panel-inner">
+            <div class="config-header-main">
+              <h2 class="config-title">Model Configuration</h2>
+              <p class="config-subtitle">Manage connection settings and API keys for this provider.</p>
+            </div>
+            
+            <div class="config-card premium-card">
+              <div class="config-header">
+                <div class="header-text">
+                  <div class="provider-title">
+                    <img src="/icons/ai-logos/chatgpt-app-logo.svg" class="company-icon lg" alt="Provider" />
+                    <h3>OpenAI Compatible</h3>
+                  </div>
+                  <p>Connect to custom endpoints matching the OpenAI specification.</p>
+                </div>
+                <div class="status-badge error">
+                  <i data-lucide="alert-circle" class="icon-svg sm"></i> Not Configured
+                </div>
+              </div>
+              
+              <div class="config-body">
+                <div class="form-group">
+                  <div class="form-label-row">
+                    <label>API Key</label>
+                    <a href="#" class="help-link">Get your key <i data-lucide="external-link" class="icon-svg sm"></i></a>
+                  </div>
+                  <div class="input-wrapper premium-input">
+                    <i data-lucide="key" class="icon-svg input-icon"></i>
+                    <input type="password" placeholder="sk-..." id="apiKey" />
+                    <button class="toggle-visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+                  </div>
+                  <p class="input-help">Your API key is stored locally and never sent to our servers.</p>
+                </div>
+  
+                <div class="form-group" style="margin-top: 8px;">
+                  <label>API Host</label>
+                  <div class="input-wrapper premium-input">
+                    <i data-lucide="globe" class="icon-svg input-icon"></i>
+                    <input type="text" placeholder="https://api.openai.com/v1" id="apiHost" readonly />
+                  </div>
+                  <button class="btn-text-override" id="overrideHostBtn" style="margin-top: 6px; font-size: var(--font-size-xs); color: var(--text-muted); cursor: pointer; background: none; border: none; display: inline-flex; align-items: center; gap: 4px; padding: 4px;">
+                    <i data-lucide="edit-2" class="icon-svg sm"></i> Override Default URL
+                  </button>
+                </div>
+  
+                <div class="form-group" style="margin-top: 8px;">
+                  <label>Available Models</label>
+                  <div id="models-container" class="models-container premium-box">
+                    <!-- Injected via JS based on Provider -->
+                  </div>
+                </div>
+              </div>
+  
+              <div class="form-actions">
+                 <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+                 <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Skills, Sub Agents, Memory panels (rendered by JS) -->
+      <div id="tab-skills" class="tab-content"></div>
+      <div id="tab-subagents" class="tab-content"></div>
+      <div id="tab-memory" class="tab-content"></div>
+    </div>
+  </div>
+
+  <div id="integrations-view" class="main-view" style="display: none;">
+    <div class="agents-layout">
+      <div class="agents-sidebar">
+         <button class="sub-tab integration-tab active" data-tab="websearch">Web Search</button>
+         <button class="sub-tab integration-tab" data-tab="webfetch">Web Content Fetch</button>
+      </div>
+      
+      <!-- Web Search Tab -->
+      <div id="tab-websearch" class="tab-content integration-content active-tab">
+        <div class="config-panel premium-layout" style="width: 100%; max-width: 800px; margin: 0 auto;">
+          <div class="config-panel-inner">
+            <div class="config-header-main">
+              <h2 class="config-title">Web Search Configuration</h2>
+              <p class="config-subtitle">Select and configure the search provider used by the agent to browse the web.</p>
+            </div>
+            
+            <div class="config-card premium-card">
+              <div class="config-header" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+                <div class="header-text" style="width: 100%;">
+                  <h3>Active Search Provider</h3>
+                  <p>Choose which API to use for the `search_web` tool.</p>
+                </div>
+                <div class="form-group" style="width: 100%; margin: 0;">
+                  <div class="custom-dropdown" id="dropdown-websearch" data-value="tavily">
+                    <div class="dropdown-selected">
+                      <span class="selected-text">Tavily</span>
+                      <i data-lucide="chevron-down" class="icon-svg sm"></i>
+                    </div>
+                    <div class="dropdown-options">
+                      <div class="dropdown-option" data-value="tavily">Tavily</div>
+                      <div class="dropdown-option" data-value="jina">Jina Web Search</div>
+                      <div class="dropdown-option" data-value="brave">Brave Search API</div>
+                      <div class="dropdown-option" data-value="bing">Bing Search</div>
+                      <div class="dropdown-option" data-value="serp">SerpAPI</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="config-body" style="padding-top: 24px; margin-top: 16px;">
+                <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-primary);">Provider API Keys</h3>
+                
+                <div class="form-group">
+                  <label>Tavily API Key</label>
+                  <div class="input-wrapper premium-input">
+                    <i data-lucide="key" class="icon-svg input-icon"></i>
+                    <input type="password" placeholder="tvly-..." id="apiKey-tavily" />
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                  <label>Jina Search API Key</label>
+                  <div class="input-wrapper premium-input">
+                    <i data-lucide="key" class="icon-svg input-icon"></i>
+                    <input type="password" placeholder="jina_..." id="apiKey-jina" />
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                  <label>Brave Search API Key</label>
+                  <div class="input-wrapper premium-input">
+                    <i data-lucide="key" class="icon-svg input-icon"></i>
+                    <input type="password" placeholder="BSA..." id="apiKey-brave" />
+                  </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 16px;">
+                  <label>Bing Search API Key</label>
+                  <div class="input-wrapper premium-input">
+                    <i data-lucide="key" class="icon-svg input-icon"></i>
+                    <input type="password" placeholder="Key..." id="apiKey-bing" />
+                  </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 16px;">
+                  <label>SerpAPI Key</label>
+                  <div class="input-wrapper premium-input">
+                    <i data-lucide="key" class="icon-svg input-icon"></i>
+                    <input type="password" placeholder="Key..." id="apiKey-serp" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                 <button class="btn-primary" id="save-integrations-websearch-btn"><i data-lucide="check" class="icon-svg sm"></i> Save Configuration</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Web Content Fetch Tab -->
+      <div id="tab-webfetch" class="tab-content integration-content">
+        <div class="config-panel premium-layout" style="width: 100%; max-width: 800px; margin: 0 auto;">
+          <div class="config-panel-inner">
+            <div class="config-header-main">
+              <h2 class="config-title">Web Content Fetch Configuration</h2>
+              <p class="config-subtitle">Select and configure the provider used to fetch and read raw web pages.</p>
+            </div>
+            
+            <div class="config-card premium-card">
+              <div class="config-header" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+                <div class="header-text" style="width: 100%;">
+                  <h3>Active Fetch Provider</h3>
+                  <p>Choose which API to use for reading web pages.</p>
+                </div>
+                <div class="form-group" style="width: 100%; margin: 0;">
+                  <div class="custom-dropdown" id="dropdown-webfetch" data-value="jina">
+                    <div class="dropdown-selected">
+                      <span class="selected-text">Jina Reader</span>
+                      <i data-lucide="chevron-down" class="icon-svg sm"></i>
+                    </div>
+                    <div class="dropdown-options">
+                      <div class="dropdown-option" data-value="jina">Jina Reader</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="config-body" style="padding-top: 24px; margin-top: 16px;">
+                <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-primary);">Provider API Keys</h3>
+                
+                <div class="form-group">
+                  <label>Jina Reader API Key</label>
+                  <div class="input-wrapper premium-input">
+                    <i data-lucide="key" class="icon-svg input-icon"></i>
+                    <input type="password" placeholder="jina_..." id="apiKey-fetch-jina" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                 <button class="btn-primary" id="save-integrations-webfetch-btn"><i data-lucide="check" class="icon-svg sm"></i> Save Configuration</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

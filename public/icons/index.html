@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI IDE Icons Showcase</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .search-container {
+            max-width: 1200px;
+            margin: 0 auto 2rem;
+            padding: 0 1rem;
+        }
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #4a6bff;
+            box-shadow: 0 0 0 2px rgba(74, 107, 255, 0.2);
+        }
+        .icons-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .icon-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .icon-item:hover {
+            transform: translateY(-2px);
+        }
+        .icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 0.5rem;
+            color: #4a6bff;
+        }
+        .icon-name {
+            font-size: 0.8rem;
+            color: #666;
+            word-break: break-word;
+        }
+        .category {
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI IDE Icons Showcase</h1>
+    
+    <div class="search-container">
+        <input type="text" id="search-input" class="search-input" placeholder="Search icons...">
+    </div>
+    
+    <div class="category">Custom Icons</div>
+    <div class="icons-container" id="custom-icons-container">
+        <!-- Custom icons will be inserted here by JavaScript -->
+    </div>
+    
+    <div class="category">Lucide Icons</div>
+    <div class="icons-container" id="lucide-icons-container">
+        <!-- Lucide icons will be inserted here by JavaScript -->
+    </div>
+    
+    <script src="lucide_icons_list.js"></script>
+    <script>
+        // List of custom icons
+        const customIcons = [
+            'file', 'folder', 'code', 'smile', 'message', 'info', 'alert', 'close', 
+            'chevron-right', 'chevron-left', 'chevron-up', 'chevron-down', 'search', 'upload', 
+            'download', 'refresh', 'grid', 'settings', 'eye', 'eye-off', 'monitor', 'layout', 
+            'maximize', 'minimize', 'copy', 'clipboard', 'shopping-cart', 'heart', 'pen', 'x', 
+            'star', 'warning', 'layers', 'clock', 'bell', 'external-link', 'bar-chart', 'pie-chart', 
+            'slash', 'terminal', 'git-branch', 'cpu', 'layers-stack', 'search-x', 'plus-square', 
+            'x-square', 'coffee', 'book', 'user', 'users', 'message-dots', 'mail', 'life-saving', 
+            'volume-high', 'instagram', 'github', 'git', 'ban', 'crosshair', 'lock', 'unlock', 
+            'plus-circle', 'x-circle', 'search-focus', 'hexagon-plus', 'hexagon',
+            'add folder', 'dashboard', 'workspace', 'project', 'plus', 'timer', 'tick', 'edit'
+        ];
+        
+        // Combine all icons for searching
+        const allIcons = [];
+        
+        // Create a map to store icon elements by name
+        const iconElements = new Map();
+        
+        // Get containers
+        const customContainer = document.getElementById('custom-icons-container');
+        const lucideContainer = document.getElementById('lucide-icons-container');
+        const searchInput = document.getElementById('search-input');
+        
+        // Function to create an icon item with lazy loading
+        function createIconItem(iconName, isLucide = false) {
+            const iconItem = document.createElement('div');
+            iconItem.className = 'icon-item';
+            
+            const iconSvg = document.createElement('div');
+            iconSvg.className = 'icon';
+            
+            // Use lazy loading for better performance
+            const img = document.createElement('img');
+            img.loading = 'lazy';
+            img.width = 48;
+            img.height = 48;
+            img.alt = iconName;
+            img.dataset.src = `${isLucide ? 'general/' : ''}${iconName}.svg`;
+            
+            iconSvg.appendChild(img);
+            
+            const iconLabel = document.createElement('div');
+            iconLabel.className = 'icon-name';
+            iconLabel.textContent = `${iconName}.svg`;
+            
+            iconItem.appendChild(iconSvg);
+            iconItem.appendChild(iconLabel);
+            
+            // Store the icon element
+            iconElements.set(iconName, iconItem);
+            allIcons.push(iconName);
+            
+            return iconItem;
+        }
+        
+        // Intersection Observer for lazy loading
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target.querySelector('img');
+                    if (img && img.dataset.src) {
+                        img.src = img.dataset.src;
+                        delete img.dataset.src;
+                    }
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '100px' });
+        
+        // Create custom icon items
+        customIcons.forEach(iconName => {
+            const iconItem = createIconItem(iconName, false);
+            customContainer.appendChild(iconItem);
+            observer.observe(iconItem);
+        });
+        
+        // Create Lucide icon items (in batches for better performance)
+        function renderLucideIconsBatch(startIndex, batchSize = 100) {
+            const endIndex = Math.min(startIndex + batchSize, lucideIcons.length);
+            
+            for (let i = startIndex; i < endIndex; i++) {
+                const iconName = lucideIcons[i];
+                const iconItem = createIconItem(iconName, true);
+                lucideContainer.appendChild(iconItem);
+                observer.observe(iconItem);
+            }
+            
+            // Render next batch if there are more icons
+            if (endIndex < lucideIcons.length) {
+                setTimeout(() => renderLucideIconsBatch(endIndex, batchSize), 50);
+            }
+        }
+        
+        // Start rendering Lucide icons in batches
+        renderLucideIconsBatch(0);
+        
+        // Search functionality with debouncing
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchTerm = this.value.toLowerCase();
+                
+                // Filter icons based on search term
+                const matchingIcons = allIcons.filter(iconName => 
+                    iconName.toLowerCase().includes(searchTerm)
+                );
+                
+                // Show/hide icons based on search results
+                iconElements.forEach((iconItem, iconName) => {
+                    if (searchTerm === '' || matchingIcons.includes(iconName)) {
+                        iconItem.style.display = '';
+                    } else {
+                        iconItem.style.display = 'none';
+                    }
+                });
+            }, 300); // Debounce delay
+        });
+    </script>
+</body>
+</html>

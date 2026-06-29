@@ -1,0 +1,155 @@
+:root {
+  /* Colors */
+  --bg-main: #121212;
+  --bg-sidebar: #181818;
+  --bg-panel: #1a1a1a;
+  --bg-input: #151515;
+  --bg-hover: #242424;
+  --bg-active: #222222;
+  
+  --text-primary: #e0e0e0;
+  --text-secondary: #888888;
+  --text-muted: #aaaaaa;
+  --text-success: #4ade80;
+  --text-warning: #ff9800;
+  
+  --accent-primary: #2563eb;
+  
+  --border-color: #333333;
+  --border-light: #444444;
+  --border-active: #555555;
+  --border-accent: #3b82f6;
+
+  /* Dimensions & Spacing */
+  --titlebar-height: 32px;
+  --top-nav-height: 56px;
+  --sidebar-width: 240px;
+  --right-sidebar-width: 300px;
+  --models-list-width: 280px;
+
+  /* Typography */
+  --font-family: 'Inter', sans-serif;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-md: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 15px;
+  --font-size-xl: 16px;
+  --font-size-2xl: 18px;
+  --font-size-3xl: 32px;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+
+  /* Patterns */
+  --pattern-dots: radial-gradient(var(--border-color) 1px, transparent 1px);
+  --pattern-size: 20px 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Lucide SVGs */
+.icon-svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2px;
+}
+.icon-svg.sm { width: 14px; height: 14px; }
+.icon-svg.lg { width: 24px; height: 24px; }
+
+/* Buttons & Inputs Resets */
+button {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+input, textarea {
+  font-family: inherit;
+}
+
+/* App Container */
+#app {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Sidebar Toggle Logic (Smooth sliding) */
+.sidebar-left, .agents-sidebar, .nav-left {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.sidebar-collapsed .sidebar-left,
+body.sidebar-collapsed .agents-sidebar,
+body.sidebar-collapsed .nav-left {
+  margin-left: calc(-1 * var(--sidebar-width));
+}
+
+/* Custom Scrollbars Global */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-active);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-active) transparent;
+}
+
+/* Page Transitions */
+#app > div {
+  animation: pageFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -1,0 +1,79 @@
+.fcs-box {
+  background: #17181a;
+  border-radius: 10px;
+  border: 1px solid #232427;
+  margin: 20px auto 0 auto;
+  padding: 0 0 0 0;
+  max-width: 600px;
+  box-shadow: 0 2px 6px #0001;
+  font-family: inherit;
+}
+.fcs-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 24px;
+  gap: 10px;
+  font-size: 17px;
+}
+.fcs-text {
+  color: #b8bfc8;
+  flex: none;
+}
+.fcs-add {
+  color: #3dc16b;
+  margin-left: 8px;
+}
+.fcs-del {
+  color: #db4b4b;
+  margin-right: 8px;
+}
+.fcs-toggle {
+  color: #878da9;
+  font-size: 30px;
+  margin-left: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: color 0.15s;
+}
+.fcs-toggle:focus {
+  color: #fff;
+}
+.fcs-review {
+  margin-left: auto;
+  background: #232427;
+  color: #b8bfc8;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 16px;
+  font-size: 15px;
+  cursor: not-allowed;
+  opacity: 0.9;
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+.fcs-details {
+  background: #131316;
+  border-top: 1px solid #232427;
+  padding: 10px 24px 12px 24px;
+}
+.fcs-file-row {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  padding: 7px 0 0 0;
+  gap: 7px;
+}
+.fcs-file-name {
+  margin-left: 4px;
+  min-width: 62px;
+  color: #e6e7ea;
+}
+.fcs-file-path {
+  margin-left: 10px;
+  color: #7a8193;
+  font-size: 13px;
+  font-style: italic;
+}
