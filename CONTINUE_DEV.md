@@ -249,25 +249,25 @@ Here is the blueprint for the 6 signature features that will take Cognetic to th
 **The Solution:** Instead of requiring API keys, Cognetic will boot or connect to a separate browser instance running with the user's authenticated profile. If the user is logged into `claude.ai` or `chatgpt.com`, Cognetic pings these interfaces directly underneath. To the orchestrator, it's just another model provider!
 
 ```
-                                            User's Browser Profile (with active sessions)
-                                                                │
-                                                                ▼
-                                        ┌─────────────────────────────────────────────────┐
-                                        │           Browser LLM Runtime                   │
-                                        │                                                 │
-                                        │  ┌──────────┐  ┌──────────┐  ┌──────────────┐   │
-                                        │  │  Claude  │  │  ChatGPT │  │    Gemini    │   │
-                                        │  │ Adapter  │  │ Adapter  │  │   Adapter    │   │
-                                        │  └──────────┘  └──────────┘  └──────────────┘   │
-                                        │       │              │               │          │
-                                        │       └──────────────┼───────────────┘          │
-                                        │                      ▼                          │
-                                        │          Unified Provider Interface             │
-                                        └─────────────────────────────────────────────────┘
-                                                               │
-                                                               ▼
-                                                      Cognetic Orchestrator
-                                          (treats browser models exactly like API models)
+    User's Browser Profile (with active sessions)
+                        │
+                        ▼
+┌─────────────────────────────────────────────────┐
+│           Browser LLM Runtime                   │
+│                                                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────┐   │
+│  │  Claude  │  │  ChatGPT │  │    Gemini    │   │
+│  │ Adapter  │  │ Adapter  │  │   Adapter    │   │
+│  └──────────┘  └──────────┘  └──────────────┘   │
+│       │              │               │          │
+│       └──────────────┼───────────────┘          │
+│                      ▼                          │
+│          Unified Provider Interface             │
+└─────────────────────────────────────────────────┘
+                       │
+                       ▼
+              Cognetic Orchestrator
+  (treats browser models exactly like API models)
 ```
 
 #### How to build it:
@@ -296,19 +296,19 @@ Here is the blueprint for the 6 signature features that will take Cognetic to th
 - **Writer:** Natural, engaging final summary response.
 
 ```
-                                                        ┌───────────────┐
-                                                        │ User Message  │
-                                                        └───────┬───────┘
-                                                                │
-                                                  ┌─────────────┴─────────────┐
-                                                  ▼                           ▼
-                                          [Intent Analyzer]           [Search Summarizer]
-                                         (Gemini Flash/Llama)          (Fast Local/API)
-                                                  │                           │
-                                                  ├───────────────────────────┤
-                                                  ▼                           ▼
-                                               [Coder]                    [Reviewer]
-                                         (Qwen Coder/Sonnet)          (GPT-4o/Sonnet)
+               ┌───────────────┐
+               │ User Message  │
+               └───────┬───────┘
+                       │
+         ┌─────────────┴─────────────┐
+         ▼                           ▼
+ [Intent Analyzer]           [Search Summarizer]
+(Gemini Flash/Llama)          (Fast Local/API)
+         │                           │
+         ├───────────────────────────┤
+         ▼                           ▼
+      [Coder]                    [Reviewer]
+(Qwen Coder/Sonnet)          (GPT-4o/Sonnet)
 ```
 
 #### How to build it:
@@ -328,28 +328,28 @@ Here is the blueprint for the 6 signature features that will take Cognetic to th
 **The Solution:** Restructure the execution pipeline into a multi-stage process where each stage passes structured context to the next, potentially utilizing different specialized models:
 
 ```
-                                       User Message
-                                            │
-                                            ▼
-                                        [Intent]         (Determine: code task? research? simple chat?)
-                                            │
-                                            ▼
-                                       [Planning]        (Generate a structured execution plan first)
-                                            │
-                                            ▼
-                                   [Context Builder]     (Fetch file mappings, run greps, locate imports)
-                                            │
-                                            ▼
-                                      [Generation]       (Write/Modify the code or assemble details)
-                                            │
-                                            ▼
-                                     [Verification]      (Synthesize, build checks, verify code logic)
-                                            │
-                                            ▼
-                                       [Patching]        (Apply the changes back safely to the project)
-                                            │
-                                            ▼
-                                      Final Answer
+    User Message
+         │
+         ▼
+     [Intent]         (Determine: code task? research? simple chat?)
+         │
+         ▼
+    [Planning]        (Generate a structured execution plan first)
+         │
+         ▼
+[Context Builder]     (Fetch file mappings, run greps, locate imports)
+         │
+         ▼
+   [Generation]       (Write/Modify the code or assemble details)
+         │
+         ▼
+  [Verification]      (Synthesize, build checks, verify code logic)
+         │
+         ▼
+    [Patching]        (Apply the changes back safely to the project)
+         │
+         ▼
+   Final Answer
 ```
 
 #### How to build it:
@@ -367,37 +367,37 @@ Here is the blueprint for the 6 signature features that will take Cognetic to th
 **The Solution:** Build a native, free search and scraping pipeline directly in the Rust backend. Instead of querying a search API, Cognetic behaves like a human search client:
 
 ```
-                                         User Search Query
-                                                 │
-                                                 ▼
-                                     ┌───────────────────────┐
-                                     │    Search Engines     │ (DuckDuckGo, Yahoo, Bing, Google)
-                                     └───────────┬───────────┘
-                                                 │
-                                                 ▼
-                                     ┌───────────────────────┐
-                                     │     Collect URLs      │ (Scrape links from result pages)
-                                     └───────────┬───────────┘
-                                                 │
-                                                 ▼
-                                     ┌───────────────────────┐
-                                     │     Download HTML     │ (Reqwest on Rust backend)
-                                     └───────────┬───────────┘
-                                                 │
-                                                 ▼
-                                     ┌───────────────────────┐
-                                     │      Clean HTML       │ (Strip scripts, styles, boilerplates)
-                                     └───────────┬───────────┘
-                                                 │
-                                                 ▼
-                                     ┌───────────────────────┐
-                                     │    Chunk & Rank       │ (Regex/semantic distance check)
-                                     └───────────┬───────────┘
-                                                 │
-                                                 ▼
-                                     ┌───────────────────────┐
-                                     │    Summarize & Output │ (Present clean context to LLM)
-                                     └───────────────────────┘
+    User Search Query
+            │
+            ▼
+┌───────────────────────┐
+│    Search Engines     │ (DuckDuckGo, Yahoo, Bing, Google)
+└───────────┬───────────┘
+            │
+            ▼
+┌───────────────────────┐
+│     Collect URLs      │ (Scrape links from result pages)
+└───────────┬───────────┘
+            │
+            ▼
+┌───────────────────────┐
+│     Download HTML     │ (Reqwest on Rust backend)
+└───────────┬───────────┘
+            │
+            ▼
+┌───────────────────────┐
+│      Clean HTML       │ (Strip scripts, styles, boilerplates)
+└───────────┬───────────┘
+            │
+            ▼
+┌───────────────────────┐
+│    Chunk & Rank       │ (Regex/semantic distance check)
+└───────────┬───────────┘
+            │
+            ▼
+┌───────────────────────┐
+│    Summarize & Output │ (Present clean context to LLM)
+└───────────────────────┘
 ```
 
 #### How to build it:
@@ -418,24 +418,24 @@ Here is the blueprint for the 6 signature features that will take Cognetic to th
 **The Solution:** Create a "Debate Mode" for difficult tasks (reminiscent of Cursor or OpenAI Deep Research). Instead of one model generating the answer, three models debate each other:
 
 ```
-                                                           [Planner]
-                                                  (Lays out the goal & constraints)
-                                                              │
-                                                              ▼
-                                                     [Model A: Solution]
-                                                   (Drafts the initial code)
-                                                              │
-                                                              ▼
-                                                     [Model B: Critique]
-                                             (Actively tries to find bugs/flaws)
-                                                              │
-                                                              ▼
-                                                   [Model C: Improvements]
-                                              (Refines solution based on critique)
-                                                              │
-                                                              ▼
-                                                      [Final Synthesis]
-                                               (Produces the clean output block)
+              [Planner]
+     (Lays out the goal & constraints)
+                 │
+                 ▼
+        [Model A: Solution]
+      (Drafts the initial code)
+                 │
+                 ▼
+        [Model B: Critique]
+(Actively tries to find bugs/flaws)
+                 │
+                 ▼
+      [Model C: Improvements]
+ (Refines solution based on critique)
+                 │
+                 ▼
+         [Final Synthesis]
+  (Produces the clean output block)
 ```
 
 #### How to build it:
@@ -476,24 +476,24 @@ Here is the blueprint for the 6 signature features that will take Cognetic to th
 **The Solution:** Build a self-correction loop directly into the code-generation cycle. Instead of stopping after writing a file or generating code, Cognetic runs a validation step:
 
 ```
-                                                    [Generate]
-                                                 (Initial Draft)
-                                                        │
-                                                        ▼
-                                                     [Review]
-                                               (Check against context & rules)
-                                                        │
-                                                        ▼
-                                                  [Find Mistakes]
-                                              (Identify syntax errors, type mismatches)
-                                                        │
-                                                        ▼
-                                                [Automatically Patch]
-                                               (Apply fixes silently behind scenes)
-                                                        │
-                                                        ▼
-                                                    [Deliver]
-                                               (Clean, working code sent to user)
+      [Generate]
+   (Initial Draft)
+          │
+          ▼
+       [Review]
+ (Check against context & rules)
+          │
+          ▼
+    [Find Mistakes]
+(Identify syntax errors, type mismatches)
+          │
+          ▼
+  [Automatically Patch]
+ (Apply fixes silently behind scenes)
+          │
+          ▼
+      [Deliver]
+ (Clean, working code sent to user)
 ```
 
 #### How to build it:
@@ -536,18 +536,18 @@ Here is the blueprint for the 6 signature features that will take Cognetic to th
 Every 10–20 interactions, Cognetic will run a background summarization to update a structured **Session Memory** object containing the project's active goals, key decisions made, current progress, constraints, and pending tasks.
 
 ```
-                                  ┌────────────────────────────────────────────────────────┐
-                                  │                   Hierarchical Memory                  │
-                                  ├────────────────────────────────────────────────────────┤
-                                  │                                                        │
-                                  │  [Recent Chat History] ───> Active, untouched context  │
-                                  │                                                        │
-                                  │  [Session Memory] ────────> Goals, Decisions, Tasks    │
-                                  │                             (Updated every 15 turns)   │
-                                  │                                                        │
-                                  │  [Long-Term Summary] ─────> Oldest 75% compressed      │
-                                  │                             (When history > 100k tkn)  │
-                                  └────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│                   Hierarchical Memory                  │
+├────────────────────────────────────────────────────────┤
+│                                                        │
+│  [Recent Chat History] ───> Active, untouched context  │
+│                                                        │
+│  [Session Memory] ────────> Goals, Decisions, Tasks    │
+│                             (Updated every 15 turns)   │
+│                                                        │
+│  [Long-Term Summary] ─────> Oldest 75% compressed      │
+│                             (When history > 100k tkn)  │
+└────────────────────────────────────────────────────────┘
 ```
 
 #### How to build it:
