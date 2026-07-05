@@ -1,3 +1,5 @@
+import { renderToolbar } from '../components/toolbar/Toolbar.js';
+
 class Router {
     constructor(rootElement) {
         this.root = rootElement;
@@ -13,6 +15,19 @@ class Router {
         if (!this.routes[name]) {
             console.error(`Route ${name} not found`);
             return;
+        }
+
+        // Manage toolbar: only show on home route, hide everywhere else
+        const toolbarContainer = document.getElementById('toolbar-container');
+        if (toolbarContainer) {
+            if (name === 'home') {
+                // Re-render toolbar if it was cleared
+                if (!toolbarContainer.querySelector('#toolbar')) {
+                    renderToolbar(toolbarContainer);
+                }
+            } else {
+                toolbarContainer.innerHTML = '';
+            }
         }
 
         // Clear current view

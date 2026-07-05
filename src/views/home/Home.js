@@ -6,6 +6,7 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { llmService } from '../../core/llmService.js';
 import { parseToolCall, parseAllToolCalls, executeTool } from '../../core/toolEngine.js';
+import { changeTracker } from '../../core/changeTracker.js';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
@@ -118,9 +119,10 @@ function getConfiguredModels() {
     
     for (const [providerName, config] of Object.entries(configuredProviders)) {
         const isLocal = ['Ollama', 'LM Studio'].includes(providerName);
+        const isCdp = PROVIDERS_CONFIG[providerName]?.isCdpBridge;
         const hasKey = config.apiKey && config.apiKey.trim() !== '';
         
-        if (hasKey || isLocal) {
+        if (hasKey || isLocal || isCdp) {
             if (providerName === 'OpenAI Compatible') {
                 if (config.customModels && config.customModels.length > 0) {
                     config.customModels.forEach(cm => {
@@ -149,7 +151,7 @@ function createDropdownHTML() {
             <div class="model-item no-models" style="justify-content: center; color: var(--text-muted); cursor: default; padding: 12px;">
                 No models configured
             </div>
-            <div class="model-item go-settings" style="justify-content: center; color: var(--accent-primary); border-top: 1px solid var(--border-color); border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+            <div class="model-item go-settings" style="justify-content: center; color: var(--accent-primary); border-top: 1px solid var(--border-color); border-radius: 0 0 calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px);">
                 <i data-lucide="settings" class="icon-svg sm"></i> Configure Models
             </div>
         `;
@@ -1164,6 +1166,8 @@ function initTypewriter(element) {
             
             if (messages.length > 0) {
                 messages.forEach((msg, i) => {
+                    if (msg.role === 'tool') return;
+                    
                     const row = document.createElement('div');
                     row.className = `message-row ${msg.role === 'user' ? 'user' : 'assistant'}`;
                     
@@ -1172,16 +1176,20 @@ function initTypewriter(element) {
                     
                     if (msg.role === 'assistant') {
                         // Check if it's a tool execution
-                        if (msg.content.includes('<tool name=')) {
+                        if (msg.tool_calls && msg.tool_calls.length > 0) {
                              row.classList.add('tool-call-row');
-                             const toolCalls = parseAllToolCalls(msg.content);
+                             const toolCalls = msg.tool_calls;
                              
+                             const getTcName = (tc) => tc.function ? tc.function.name : tc.name;
+                             const getTcParams = (tc) => { try { return JSON.parse(tc.function.arguments || '{}'); } catch(e){return {};} };
+
                              const baseName = (path) => path ? path.split(/[\/\\]/).pop() : '';
                              const getHost = (url) => { try { return new URL(url).hostname; } catch(e) { return 'URL'; } };
                              
                              const getLabels = (tc, resultText) => {
-                                 const p = tc.params || {};
-                                 switch(tc.name) {
+                                 const p = getTcParams(tc);
+                                 const tcName = getTcName(tc);
+                                 switch(tcName) {
                                      case 'read_file': return [`Reading ${baseName(p.filepath) || 'file'}...`, `Read ${baseName(p.filepath) || 'file'}`];
                                      case 'write_file': return [`Writing ${baseName(p.filepath) || 'file'}...`, `Wrote ${baseName(p.filepath) || 'file'}`];
                                      case 'list_files': return [`Listing ${baseName(p.dirpath) || 'directory'}...`, `Listed ${baseName(p.dirpath) || 'directory'}`];
@@ -1211,35 +1219,58 @@ function initTypewriter(element) {
                                      case 'search_web': return [`Searching web for "${p.query || ''}"...`, `Searched web for "${p.query || ''}"`];
                                      case 'fetch_url': return [`Fetching ${getHost(p.url)}...`, `Fetched ${getHost(p.url)}`];
                                      case 'next_search_batch': return [`Reading next batch from ${getHost(p.url)}...`, `Read next batch from ${getHost(p.url)}`];
-                                     default: return [`Executing ${tc.name}...`, `Executed ${tc.name}`];
+                                     default: return [`Executing ${tcName}...`, `Executed ${tcName}`];
                                  }
                              };
                              
                              let isCompleted = false;
                              if (i + 1 < messages.length) {
                                  const nextMsg = messages[i + 1];
-                                 if (nextMsg.role === 'tool_result' || (nextMsg.role === 'user' && nextMsg.content.includes('<tool_result'))) {
+                                 if (nextMsg.role === 'tool' || nextMsg.role === 'tool_result' || (nextMsg.role === 'user' && nextMsg.content.includes('<tool_result'))) {
                                      isCompleted = true;
                                  }
                              }
 
                              const items = (toolCalls.length > 0 ? toolCalls : [null]).map((tc, tcIdx) => {
                                  let toolResultText = undefined;
+                                 let toolMsgMeta = null;
                                  if (isCompleted && tc && messages[i + 1]) {
                                      const nextMsg = messages[i + 1];
-                                     const allResults = [];
-                                     const rx = /<tool_result[^>]*>([\s\S]*?)<\/tool_result>/g;
-                                     let match;
-                                     while ((match = rx.exec(nextMsg.content)) !== null) {
-                                         allResults.push(match[1].trim());
-                                     }
-                                     if (allResults.length > tcIdx) {
-                                         toolResultText = allResults[tcIdx];
+                                     if (nextMsg.role === 'tool') {
+                                         let tIdx = 1;
+                                         let currMsg = nextMsg;
+                                         while (currMsg && currMsg.role === 'tool') {
+                                             if (currMsg.tool_call_id === tc.id) {
+                                                 toolResultText = currMsg.content;
+                                                 toolMsgMeta = currMsg;
+                                                 break;
+                                             }
+                                             tIdx++;
+                                             currMsg = messages[i + tIdx];
+                                         }
+                                     } else {
+                                         const allResults = [];
+                                         const rx = /<tool_result[^>]*>([\s\S]*?)<\/tool_result>/g;
+                                         let match;
+                                         while ((match = rx.exec(nextMsg.content)) !== null) {
+                                             allResults.push(match[1].trim());
+                                         }
+                                         if (allResults.length > tcIdx) {
+                                             toolResultText = allResults[tcIdx];
+                                         }
                                      }
                                  }
                                  const [runLbl, doneLbl] = tc ? getLabels(tc, toolResultText) : ['Executing tool...', 'Executed tool'];
                                  
-                                 if (tc && tc.name === 'search_web' && isCompleted && toolResultText) {
+                                 // DEBUG INJECTION
+                                 if (tc && getTcName(tc) === 'edit_file') {
+                                     const isCmp = isCompleted;
+                                     const trt = toolResultText;
+                                     const startErr = toolResultText ? toolResultText.startsWith("Error") : false;
+                                     console.log("edit_file outer logic check -> isCompleted:", isCmp, "toolResultText:", trt, "starts with error:", startErr);
+                                 }
+                                 
+                                 if (tc && getTcName(tc) === 'search_web' && isCompleted && toolResultText) {
                                      const searchResults = [];
                                      const rxSearch = /### \[(.+?)\]\((.+?)\)/g;
                                      let m;
@@ -1247,7 +1278,7 @@ function initTypewriter(element) {
                                          searchResults.push({ title: m[1], url: m[2] });
                                      }
                                      if (searchResults.length > 0) {
-                                         let query = tc.params?.query || '';
+                                         let query = getTcParams(tc).query || '';
                                          
                                          if (!msg._searchTime) msg._searchTime = {};
                                          if (!msg._searchTime[tcIdx]) {
@@ -1309,20 +1340,73 @@ function initTypewriter(element) {
                                      }
                                  }
                                  
+                                 if (tc && getTcName(tc) === 'edit_file' && isCompleted && toolResultText && !toolResultText.startsWith("Error")) {
+                                     const params = getTcParams(tc);
+                                     let targetPath = params.filepath || '';
+                                     const baseName = targetPath.split(/[/\\]/).pop();
+                                     
+                                     const change = toolMsgMeta ? { patch: toolMsgMeta.patch, additions: toolMsgMeta.additions, deletions: toolMsgMeta.deletions } : null;
+                                     
+                                     if (change && change.patch) {
+                                         const patchLines = change.patch.split('\n');
+                                         let diffHtml = '';
+                                         let inHunk = false;
+                                         for (const line of patchLines) {
+                                             if (line.startsWith('---') || line.startsWith('+++') || line.startsWith('Index:') || line.startsWith('===')) continue;
+                                             
+                                             if (line.startsWith('@@')) {
+                                                 inHunk = true;
+                                                 diffHtml += `<div style="color:var(--text-secondary);font-size:11px;padding:4px 8px;background:var(--bg-tertiary);margin-top:4px;">${line}</div>`;
+                                                 continue;
+                                             }
+                                             if (inHunk) {
+                                                 if (line.startsWith('+')) {
+                                                     diffHtml += `<div style="color:#22c55e;background:rgba(34,197,94,0.1);padding:0 8px;font-family:monospace;white-space:pre-wrap;">${line.replace(/</g,'&lt;')}</div>`;
+                                                 } else if (line.startsWith('-')) {
+                                                     diffHtml += `<div style="color:#ef4444;background:rgba(239,68,68,0.1);padding:0 8px;font-family:monospace;white-space:pre-wrap;">${line.replace(/</g,'&lt;')}</div>`;
+                                                 } else {
+                                                     diffHtml += `<div style="color:var(--text-secondary);padding:0 8px;font-family:monospace;white-space:pre-wrap;">${line.replace(/</g,'&lt;')}</div>`;
+                                                 }
+                                             }
+                                         }
+                                         
+                                         return `
+                                         <div class="search-web-container" data-msg-id="${msg.id}" data-tc-idx="${tcIdx}" style="margin: 8px 0;">
+                                             <div class="search-web-summary" onclick="this.parentElement.classList.toggle('open')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;color:var(--text-secondary);font-size:13px;padding:4px 0;user-select:none;">
+                                                 <div style="display:flex;align-items:center;gap:8px;flex-grow:1;">
+                                                     <i data-lucide="file-edit" class="icon-svg sm" style="color: #22c55e;"></i>
+                                                     <span style="color:var(--text-primary);">Edited <b>${baseName}</b></span>
+                                                 </div>
+                                                 <div style="display:flex;align-items:center;gap:8px;">
+                                                     <span style="font-size:12px;color:#22c55e;font-weight:500;">+${change.additions}</span>
+                                                     <span style="font-size:12px;color:#ef4444;font-weight:500;">-${change.deletions}</span>
+                                                     <i data-lucide="chevron-right" class="icon-svg sm search-dropdown-chevron" style="transition: transform 0.3s ease;"></i>
+                                                 </div>
+                                             </div>
+                                             <div class="search-web-content">
+                                                 <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);max-height:300px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;font-size:12px;line-height:1.4;" class="custom-scrollbar">
+                                                     ${diffHtml}
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         `;
+                                     }
+                                 }
+                                 
                                  if (isCompleted) {
                                      return `<div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);">
                                          <i data-lucide="check-circle-2" class="icon-svg sm" style="color:#22c55e;"></i>
                                          <span>${doneLbl}</span>
                                      </div>`;
                                  } else {
-                                     return `<div style="display:flex;align-items:center;gap:8px;color:var(--accent-primary);">
-                                         <i data-lucide="cog" class="icon-svg sm spin-anim"></i>
-                                         <span>${runLbl}</span>
+                                     return `<div style="display:flex;align-items:center;gap:8px;">
+                                         <i data-lucide="loader-2" class="icon-svg sm spin-anim" style="color:var(--accent-primary)"></i>
+                                         <span class="shimmer-text">${runLbl}</span>
                                      </div>`;
                                  }
                              });
                             
-                            let stripped = msg.content.replace(/<tool\s+name=["']?([^"'>]+)["']?>([\s\S]*?)<\/tool>/gi, '').trim();
+                            let stripped = msg.content ? msg.content.replace(/<tool\s+name=["']?([^"'>]+)["']?>([\s\S]*?)<\/tool>/gi, '').trim() : '';
                             let textHtml = '';
                             if (stripped) {
                                 textHtml = `<div style="margin-bottom: 12px; color: var(--text-primary); font-size: var(--font-size-base); line-height: 1.6;">${DOMPurify.sanitize(marked.parse(stripped))}</div>`;
@@ -1344,8 +1428,7 @@ function initTypewriter(element) {
                              
                              let fileChangesHtml = '';
                              let filesChanged = msg.filesChanged;
-                             
-                             // Demo logic: infer file changes if the previous message was a tool execution
+                                                        // Demo logic: infer file changes if the previous message was a tool execution
                              if (!filesChanged && i > 0) {
                                  let prevToolCallMsg = null;
                                  for (let j = i - 1; j >= 0; j--) {
@@ -1353,46 +1436,48 @@ function initTypewriter(element) {
                                      if (m.role === 'user' && !m.content.includes('<tool_result')) {
                                          break; // Hit a real user prompt, stop looking backwards
                                      }
-                                     if (m.role === 'assistant' && m.content.includes('<tool name=')) {
+                                     if (m.role === 'assistant' && m.tool_calls && m.tool_calls.length > 0) {
                                          prevToolCallMsg = m;
                                          break;
                                      }
                                  }
 
                                  if (prevToolCallMsg) {
-                                     const tcs = parseAllToolCalls(prevToolCallMsg.content);
-                                     const fileTcs = tcs.filter(tc => ['write_file', 'writelines', 'delete_path', 'rename_path'].includes(tc.name));
+                                     const tcs = prevToolCallMsg.tool_calls;
+                                     const getTcName = (tc) => tc.function ? tc.function.name : tc.name;
+                                     const getTcParams = (tc) => { try { return JSON.parse(tc.function.arguments || '{}'); } catch(e){return {};} };
+                                     
+                                     const fileTcs = tcs.filter(tc => ['write_file', 'writelines', 'delete_path', 'rename_path'].includes(getTcName(tc)));
                                      if (fileTcs.length > 0) {
                                          filesChanged = fileTcs.map(tc => {
-                                             const p = tc.params || {};
+                                             const p = getTcParams(tc);
+                                             const tcName = getTcName(tc);
                                              const filePath = p.filepath || p.path || p.old_path || 'unknown';
                                              
                                              let additions = 0;
                                              let deletions = 0;
                                              
-                                             if (tc.name.includes('write')) {
+                                             if (tcName.includes('write')) {
                                                  let contentStr = '';
                                                  if (p.content !== undefined) contentStr = String(p.content);
                                                  else if (p.CodeContent !== undefined) contentStr = String(p.CodeContent);
                                                  
-                                                 additions = contentStr === '' ? 0 : contentStr.split(/\r?\n|\\n/).length;
+                                                 additions = contentStr === '' ? 0 : contentStr.split(/\r?\n|\n/).length;
                                                  
-                                                 if (tc.name === 'writelines' || (p.startline && p.endline)) {
+                                                 if (tcName === 'writelines' || (p.startline && p.endline)) {
                                                      const s = parseInt(p.startline);
                                                      const e = parseInt(p.endline);
                                                      if (!isNaN(s) && !isNaN(e)) deletions = e - s + 1;
                                                      else deletions = 1;
                                                  } else {
-                                                     // if additions is 0, it means it cleared the file, we could show an arbitrary deletion amount 
-                                                     // but since we don't know the prior length, 0 additions is the main signal.
                                                      deletions = contentStr === '' ? 'All' : 0; 
                                                  }
-                                             } else if (tc.name.includes('replace') || tc.name.includes('edit')) {
+                                             } else if (tcName.includes('replace') || tcName.includes('edit')) {
                                                  let contentStr = '';
                                                  if (p.content !== undefined) contentStr = String(p.content);
                                                  else if (p.ReplacementContent !== undefined) contentStr = String(p.ReplacementContent);
                                                  
-                                                 additions = contentStr === '' ? 0 : contentStr.split(/\r?\n|\\n/).length;
+                                                 additions = contentStr === '' ? 0 : contentStr.split(/\r?\n|\n/).length;
                                                  
                                                  if (p.startline && p.endline) {
                                                      const s = parseInt(p.startline);
@@ -1404,17 +1489,12 @@ function initTypewriter(element) {
                                                  } else {
                                                      deletions = additions; // Fallback
                                                  }
-                                             } else if (tc.name.includes('delete')) {
+                                             } else if (tcName.includes('delete')) {
                                                  additions = 0;
                                                  deletions = 'All';
                                              }
                                              
-                                             return {
-                                                 name: filePath.split(/[\/\\]/).pop(),
-                                                 path: filePath,
-                                                 additions: additions,
-                                                 deletions: deletions
-                                             };
+                                             return { path: filePath, additions, deletions, type: tcName };
                                          });
                                      }
                                  }
@@ -1490,14 +1570,14 @@ function initTypewriter(element) {
                             formattedResult = Object.entries(intentResult).map(([k, v]) => `<div style="display:flex; justify-content:space-between; gap:12px;"><span style="color:var(--text-muted);">${k}:</span> <span style="color:var(--text-primary);font-family:monospace;">${v}</span></div>`).join('');
                         } catch(e) {}
                         
-                        row.innerHTML = `
+                        row.innerHTML = DOMPurify.sanitize(`
                         <div class="message-bubble intent-chip-wrapper" style="position: relative; font-size: 13px; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--border-color); padding: 6px 12px; cursor: pointer; user-select: none;">
                             <i data-lucide="check-circle-2" class="icon-svg sm" style="color: var(--success-color);"></i> Analyzed request in ${elapsed}s
                             <i data-lucide="chevron-right" class="icon-svg sm" style="margin-left: 4px; transition: transform 0.2s;"></i>
                             <div class="intent-popup" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; z-index: 100; min-width: 240px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); flex-direction: column; gap: 6px; text-align: left;">
                                 ${formattedResult}
                             </div>
-                        </div>`;
+                        </div>`);
                         
                         setTimeout(() => {
                             const wrapper = row.querySelector('.intent-chip-wrapper');
@@ -1535,7 +1615,7 @@ function initTypewriter(element) {
                     if (row.dataset.fileChangesHtml) {
                         const fcWrapper = document.createElement('div');
                         fcWrapper.className = 'file-changes-wrapper';
-                        fcWrapper.innerHTML = row.dataset.fileChangesHtml;
+                        fcWrapper.innerHTML = DOMPurify.sanitize(row.dataset.fileChangesHtml);
                         row.appendChild(fcWrapper);
                     }
                     
@@ -1562,7 +1642,7 @@ function initTypewriter(element) {
                             actionsHtml += `<button class="msg-action-btn edit-msg-btn" data-index="${i}" title="Edit"><i data-lucide="edit-2" class="icon-svg sm"></i></button>`;
                         }
                         actionsHtml += `<button class="msg-action-btn copy-msg-btn" data-index="${i}" title="Copy"><i data-lucide="copy" class="icon-svg sm"></i></button>`;
-                        actionBtns.innerHTML = actionsHtml;
+                        actionBtns.innerHTML = DOMPurify.sanitize(actionsHtml);
                         
                         actionBtns.querySelectorAll('.copy-msg-btn').forEach(btn => {
                             btn.addEventListener('click', async () => {
@@ -1629,9 +1709,9 @@ function initTypewriter(element) {
                     const dirpath = el.dataset.dir;
                     try {
                         const treeText = await invoke('get_tree', { dirpath });
-                        el.innerHTML = `<div class="tree-result-container" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-top: 8px; overflow-x: auto; font-family: 'Consolas', monospace; font-size: 13px; color: var(--text-primary); white-space: pre;">${treeText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
+                        el.innerHTML = DOMPurify.sanitize(`<div class="tree-result-container" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-top: 8px; overflow-x: auto; font-family: 'Consolas', monospace; font-size: 13px; color: var(--text-primary); white-space: pre;">${treeText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`);
                     } catch (e) {
-                        el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--error-color);padding:12px;background:var(--bg-secondary);border:1px solid var(--error-color);border-radius:var(--radius-md);"><i data-lucide="alert-circle" class="icon-svg" style="color:var(--error-color);"></i><span>It looks like the path does not exist</span></div>`;
+                        el.innerHTML = DOMPurify.sanitize(`<div style="display:flex;align-items:center;gap:8px;color:var(--error-color);padding:12px;background:var(--bg-secondary);border:1px solid var(--error-color);border-radius:var(--radius-md);"><i data-lucide="alert-circle" class="icon-svg" style="color:var(--error-color);"></i><span>It looks like the path does not exist</span></div>`);
                         if (window.lucide) window.lucide.createIcons({ root: el });
                     }
                 });
@@ -1714,7 +1794,7 @@ function initTypewriter(element) {
         
         const text = responseObj.text;
         const stats = responseObj.stats;
-        const toolCalls = parseAllToolCalls(text);
+        const toolCalls = responseObj.tool_calls || [];
         
         if (toolCalls.length > 0) {
             if (chatContainer) {
@@ -1722,18 +1802,18 @@ function initTypewriter(element) {
                 loaders.forEach(l => l.remove());
             }
             
-            stateManager.addMessage('assistant', text, [], stats);
+            stateManager.addMessage('assistant', text, [], stats, { tool_calls: toolCalls });
             
             const state = stateManager.getState();
             const activeProject = state.activeProjectId 
                 ? state.projects.find(p => p.id === state.activeProjectId)
                 : null;
-            const basePath = activeProject ? activeProject.path : null;
+            const basePaths = activeProject ? (activeProject.paths || []) : [];
             
             if (!stateManager.isGenerating) return;
             
             const results = await Promise.all(
-                toolCalls.map(tc => executeTool(tc, basePath, stateManager.getCancelSignal(), stateManager.cancelController))
+                toolCalls.map(tc => executeTool(tc, basePaths, stateManager.getCancelSignal(), stateManager.cancelController))
             );
             
             if (!stateManager.isGenerating) {
@@ -1741,13 +1821,22 @@ function initTypewriter(element) {
                 return;
             }
             
-            let combinedResult = '';
             toolCalls.forEach((tc, i) => {
-                console.log(`Tool Result for ${tc.name}:`, results[i]);
-                combinedResult += `<tool_result name="${tc.name}">\n${results[i]}\n</tool_result>\n`;
+                const tcName = tc.function ? tc.function.name : tc.name;
+                const resObj = results[i];
+                let finalContent = resObj;
+                let extraMeta = {};
+                
+                if (typeof resObj === 'object' && resObj !== null) {
+                    finalContent = resObj.text;
+                    if (resObj.patch) extraMeta.patch = resObj.patch;
+                    if (resObj.additions !== undefined) extraMeta.additions = resObj.additions;
+                    if (resObj.deletions !== undefined) extraMeta.deletions = resObj.deletions;
+                }
+                
+                console.log(`Tool Result for ${tcName}:`, finalContent);
+                stateManager.addMessage('tool', finalContent, [], null, { tool_call_id: tc.id, name: tcName, ...extraMeta });
             });
-            
-            stateManager.addMessage('user', combinedResult.trim());
             
             if (!stateManager.isGenerating) return;
             

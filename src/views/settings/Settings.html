@@ -1,0 +1,720 @@
+<div class="view-settings">
+  <div class="top-nav">
+    <div class="nav-left">
+      <button class="back-btn" id="settings-back-btn">
+        <i data-lucide="arrow-left" class="icon-svg"></i>
+      </button>
+      <span class="logo-text">Cognetic</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab" id="nav-st-webagents-tab">Web Agents</button>
+      <button class="nav-tab" id="nav-st-integrations-tab">Integrations</button>
+      <button class="nav-tab" id="nav-st-agents-tab">Agents</button>
+      <button class="nav-tab" id="nav-st-channels-tab">Channels</button>
+      <button class="nav-tab" id="nav-st-connectors-tab">Connectors</button>
+      <button class="nav-tab" id="nav-st-browser-tab">Browser</button>
+      <button class="nav-tab active">General</button>
+    </div>
+    <div class="nav-right">
+      <i data-lucide="help-circle" class="icon-svg"></i>
+      <button id="settings-home-btn" style="background:none;border:none;padding:0;display:flex;align-items:center;cursor:pointer;">
+        <i data-lucide="home" class="icon-svg"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="settings-layout">
+    <!-- Sidebar -->
+    <div class="settings-sidebar">
+      <div class="sidebar-section-label">General</div>
+      <button class="st-tab active" data-tab="general"><i data-lucide="settings-2" class="icon-svg sm"></i> General</button>
+      <button class="st-tab" data-tab="appearance"><i data-lucide="palette" class="icon-svg sm"></i> Appearance</button>
+      <button class="st-tab" data-tab="shortcuts"><i data-lucide="keyboard" class="icon-svg sm"></i> Shortcuts</button>
+      <div class="sidebar-section-label" style="margin-top:16px;">Data</div>
+      <button class="st-tab" data-tab="storage"><i data-lucide="hard-drive" class="icon-svg sm"></i> Storage</button>
+      <button class="st-tab" data-tab="privacy"><i data-lucide="lock" class="icon-svg sm"></i> Privacy</button>
+      <button class="st-tab" data-tab="logs"><i data-lucide="file-text" class="icon-svg sm"></i> Logs</button>
+      <div class="sidebar-section-label" style="margin-top:16px;">System</div>
+      <button class="st-tab" data-tab="updates"><i data-lucide="download-cloud" class="icon-svg sm"></i> Updates</button>
+      <button class="st-tab" data-tab="about"><i data-lucide="info" class="icon-svg sm"></i> About</button>
+      <div class="sidebar-section-label" style="margin-top:16px;">Bridge</div>
+      <button class="st-tab" data-tab="cdp"><i data-lucide="chrome" class="icon-svg sm"></i> Browser-CDP</button>
+    </div>
+
+    <!-- Main -->
+    <div class="settings-main">
+
+      <!-- GENERAL -->
+      <div class="st-panel active-panel" id="st-general">
+        <div class="st-section-header">
+          <h2 class="st-title">General Settings</h2>
+          <p class="st-subtitle">Core application behavior and defaults.</p>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Startup</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Launch on System Startup</div>
+              <div class="st-row-desc">Start Cognetic automatically when you log in</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="gen-startup" /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Start Minimized</div>
+              <div class="st-row-desc">Open in system tray on launch</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="gen-minimized" /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Default View</div>
+              <div class="st-row-desc">Which view opens on launch</div>
+            </div>
+            <div class="custom-dropdown" id="gen-default-view" data-value="home">
+  <div class="dropdown-selected">
+    <span class="selected-text">Home</span>
+    <i data-lucide="chevron-down" class="icon-svg sm"></i>
+  </div>
+  <div class="dropdown-options">
+<div class="dropdown-option selected" data-value="home">Home</div>
+<div class="dropdown-option" data-value="agents">Agents</div>
+<div class="dropdown-option" data-value="channels">Channels</div>
+  </div>
+</div>
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Agent Behavior</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Stream Responses</div>
+              <div class="st-row-desc">Show tokens as they arrive from the model</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="gen-stream" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Auto-scroll Chat</div>
+              <div class="st-row-desc">Scroll to the latest message automatically</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="gen-autoscroll" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Confirm Before Running Tools</div>
+              <div class="st-row-desc">Prompt you before executing shell commands</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="gen-confirm-tools" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Max Context Window (tokens)</div>
+              <div class="st-row-desc">Trim older messages beyond this limit</div>
+            </div>
+            <div class="modern-input-wrapper">
+  <div class="modern-input-indicator"></div>
+  <div class="modern-input-icon">
+    <i data-lucide="edit-2" class="icon-svg sm"></i>
+  </div>
+  <input type="number" id="gen-ctx" placeholder="8192" />
+</div>
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Notifications</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Desktop Notifications</div>
+              <div class="st-row-desc">Show system notifications for agent events</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="notif-desktop" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Sound Alerts</div>
+              <div class="st-row-desc">Play a sound on agent task completion</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="notif-sound" /><span class="pill-track"></span></label>
+          </div>
+        </div>
+
+        <div class="st-footer">
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Changes</button>
+        </div>
+      </div>
+
+      <!-- APPEARANCE -->
+      <div class="st-panel" id="st-appearance">
+        <div class="st-section-header">
+          <h2 class="st-title">Appearance</h2>
+          <p class="st-subtitle">Customize the look and feel of Cognetic.</p>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Theme</div>
+          <div class="theme-picker">
+            <div class="theme-option active" data-theme="dark">
+              <div class="theme-preview dark-preview"></div>
+              <div class="theme-name">Dark</div>
+              <div class="theme-check"><i data-lucide="check" class="icon-svg sm"></i></div>
+            </div>
+            <div class="theme-option" data-theme="darker">
+              <div class="theme-preview darker-preview"></div>
+              <div class="theme-name">Darker</div>
+              <div class="theme-check"></div>
+            </div>
+            <div class="theme-option" data-theme="midnight">
+              <div class="theme-preview midnight-preview"></div>
+              <div class="theme-name">Midnight</div>
+              <div class="theme-check"></div>
+            </div>
+            <div class="theme-option" data-theme="light">
+              <div class="theme-preview light-preview"></div>
+              <div class="theme-name">Light</div>
+              <div class="theme-check"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Accent Color</div>
+          <div class="accent-picker">
+            <button class="accent-swatch active" style="background:#2563eb" data-accent="blue" title="Blue"></button>
+            <button class="accent-swatch" style="background:#7c3aed" data-accent="purple" title="Purple"></button>
+            <button class="accent-swatch" style="background:#059669" data-accent="emerald" title="Emerald"></button>
+            <button class="accent-swatch" style="background:#dc2626" data-accent="red" title="Red"></button>
+            <button class="accent-swatch" style="background:#d97706" data-accent="amber" title="Amber"></button>
+            <button class="accent-swatch" style="background:#db2777" data-accent="pink" title="Pink"></button>
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Typography</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Font Family</div>
+              <div class="st-row-desc">Main interface font</div>
+            </div>
+            <div class="custom-dropdown" id="app-font" data-value="inter">
+  <div class="dropdown-selected">
+    <span class="selected-text">Inter</span>
+    <i data-lucide="chevron-down" class="icon-svg sm"></i>
+  </div>
+  <div class="dropdown-options">
+<div class="dropdown-option selected" data-value="inter">Inter</div>
+<div class="dropdown-option" data-value="geist">Geist</div>
+<div class="dropdown-option" data-value="jetbrains">JetBrains Mono</div>
+<div class="dropdown-option" data-value="system">System Default</div>
+  </div>
+</div>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">UI Scale</div>
+              <div class="st-row-desc">Zoom level of the interface</div>
+            </div>
+            <div class="custom-dropdown" id="app-scale" data-value="100">
+  <div class="dropdown-selected">
+    <span class="selected-text">100%</span>
+    <i data-lucide="chevron-down" class="icon-svg sm"></i>
+  </div>
+  <div class="dropdown-options">
+<div class="dropdown-option" data-value="90">90%</div>
+<div class="dropdown-option selected" data-value="100">100%</div>
+<div class="dropdown-option" data-value="110">110%</div>
+<div class="dropdown-option" data-value="125">125%</div>
+  </div>
+</div>
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Animations</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Page Transitions</div>
+              <div class="st-row-desc">Animate between views</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="anim-page" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Micro-animations</div>
+              <div class="st-row-desc">Hover effects and button feedback</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="anim-micro" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Reduced Motion</div>
+              <div class="st-row-desc">Minimize all animations for accessibility</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="anim-reduced" /><span class="pill-track"></span></label>
+          </div>
+        </div>
+
+        <div class="st-footer">
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Changes</button>
+        </div>
+      </div>
+
+      <!-- SHORTCUTS -->
+      <div class="st-panel" id="st-shortcuts">
+        <div class="st-section-header">
+          <h2 class="st-title">Keyboard Shortcuts</h2>
+          <p class="st-subtitle">Customize keyboard shortcuts for quick actions.</p>
+        </div>
+
+        <div class="shortcuts-table">
+          <div class="shortcut-row header-row">
+            <div>Action</div>
+            <div>Shortcut</div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-action">New Chat</div>
+            <div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>N</kbd></div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-action">Open Settings</div>
+            <div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>,</kbd></div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-action">Toggle Sidebar</div>
+            <div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>B</kbd></div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-action">Send Message</div>
+            <div class="shortcut-keys"><kbd>Enter</kbd></div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-action">New Line in Message</div>
+            <div class="shortcut-keys"><kbd>Shift</kbd><kbd>Enter</kbd></div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-action">Clear Chat</div>
+            <div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>K</kbd></div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-action">Focus Chat Input</div>
+            <div class="shortcut-keys"><kbd>Esc</kbd></div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-action">Navigate to Home</div>
+            <div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>H</kbd></div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-action">Navigate to Agents</div>
+            <div class="shortcut-keys"><kbd>Ctrl</kbd><kbd>A</kbd></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STORAGE -->
+      <div class="st-panel" id="st-storage">
+        <div class="st-section-header">
+          <h2 class="st-title">Storage & Data</h2>
+          <p class="st-subtitle">Manage local data, caches, and conversation history.</p>
+        </div>
+
+        <div class="storage-stats-grid">
+          <div class="storage-stat-card">
+            <div class="storage-stat-icon"><i data-lucide="message-square" class="icon-svg lg"></i></div>
+            <div class="storage-stat-value">127</div>
+            <div class="storage-stat-label">Conversations</div>
+          </div>
+          <div class="storage-stat-card">
+            <div class="storage-stat-icon"><i data-lucide="hard-drive" class="icon-svg lg"></i></div>
+            <div class="storage-stat-value">48 MB</div>
+            <div class="storage-stat-label">Total Storage Used</div>
+          </div>
+          <div class="storage-stat-card">
+            <div class="storage-stat-icon"><i data-lucide="brain" class="icon-svg lg"></i></div>
+            <div class="storage-stat-value">3.2 MB</div>
+            <div class="storage-stat-label">Vector Memory</div>
+          </div>
+          <div class="storage-stat-card">
+            <div class="storage-stat-icon"><i data-lucide="image" class="icon-svg lg"></i></div>
+            <div class="storage-stat-value">22 MB</div>
+            <div class="storage-stat-label">Screenshots Cache</div>
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Retention</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Keep Chat History</div>
+              <div class="st-row-desc">How long to retain conversation logs</div>
+            </div>
+            <div class="custom-dropdown" id="storage-history" data-value="30">
+  <div class="dropdown-selected">
+    <span class="selected-text">30 days</span>
+    <i data-lucide="chevron-down" class="icon-svg sm"></i>
+  </div>
+  <div class="dropdown-options">
+<div class="dropdown-option" data-value="7">7 days</div>
+<div class="dropdown-option selected" data-value="30">30 days</div>
+<div class="dropdown-option" data-value="90">90 days</div>
+<div class="dropdown-option" data-value="0">Forever</div>
+  </div>
+</div>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Auto-clear Screenshots</div>
+              <div class="st-row-desc">Remove screenshots older than</div>
+            </div>
+            <div class="custom-dropdown" id="storage-screenshots" data-value="30">
+  <div class="dropdown-selected">
+    <span class="selected-text">30 days</span>
+    <i data-lucide="chevron-down" class="icon-svg sm"></i>
+  </div>
+  <div class="dropdown-options">
+<div class="dropdown-option" data-value="7">7 days</div>
+<div class="dropdown-option selected" data-value="30">30 days</div>
+<div class="dropdown-option" data-value="0">Never</div>
+  </div>
+</div>
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Danger Zone</div>
+          <div class="danger-zone">
+            <div class="danger-action">
+              <div>
+                <div class="danger-label">Clear Screenshot Cache</div>
+                <div class="danger-desc">Frees 22 MB of disk space</div>
+              </div>
+              <button class="btn-danger-outline"><i data-lucide="trash-2" class="icon-svg sm"></i> Clear Cache</button>
+            </div>
+            <div class="danger-action">
+              <div>
+                <div class="danger-label">Export All Data</div>
+                <div class="danger-desc">Download a backup of conversations and settings</div>
+              </div>
+              <button class="btn-secondary"><i data-lucide="download" class="icon-svg sm"></i> Export</button>
+            </div>
+            <div class="danger-action">
+              <div>
+                <div class="danger-label">Reset All Settings</div>
+                <div class="danger-desc">Restore all settings to factory defaults</div>
+              </div>
+              <button class="btn-danger"><i data-lucide="alert-triangle" class="icon-svg sm"></i> Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRIVACY -->
+      <div class="st-panel" id="st-privacy">
+        <div class="st-section-header">
+          <h2 class="st-title">Privacy & Security</h2>
+          <p class="st-subtitle">Control what data is collected and how it is used.</p>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Data Collection</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Anonymous Usage Analytics</div>
+              <div class="st-row-desc">Help improve Cognetic with anonymized usage data</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="priv-analytics" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Error Reporting</div>
+              <div class="st-row-desc">Automatically send crash reports</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="priv-errors" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Conversation Logging</div>
+              <div class="st-row-desc">Keep local logs of all agent conversations</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="priv-logging" checked /><span class="pill-track"></span></label>
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Security</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Encrypt API Keys at Rest</div>
+              <div class="st-row-desc">Use OS keychain to store sensitive credentials</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="sec-encrypt" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Lock on Inactivity</div>
+              <div class="st-row-desc">Require re-authentication after idle period</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="sec-lock" /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Lock Timeout (minutes)</div>
+              <div class="st-row-desc">How long before locking on inactivity</div>
+            </div>
+            <div class="modern-input-wrapper">
+  <div class="modern-input-indicator"></div>
+  <div class="modern-input-icon">
+    <i data-lucide="edit-2" class="icon-svg sm"></i>
+  </div>
+  <input type="number" id="sec-lock-timeout" placeholder="15" />
+</div>
+          </div>
+        </div>
+
+        <div class="st-footer">
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Changes</button>
+        </div>
+      </div>
+
+      <!-- LOGS -->
+      <div class="st-panel" id="st-logs">
+        <div class="st-section-header">
+          <h2 class="st-title">Application Logs</h2>
+          <p class="st-subtitle">View and manage system and agent logs.</p>
+        </div>
+
+        <div class="logs-toolbar">
+          <div class="custom-dropdown" id="log-level" data-value="all">
+  <div class="dropdown-selected">
+    <span class="selected-text">All Levels</span>
+    <i data-lucide="chevron-down" class="icon-svg sm"></i>
+  </div>
+  <div class="dropdown-options">
+<div class="dropdown-option selected" data-value="all">All Levels</div>
+<div class="dropdown-option" data-value="info">Info</div>
+<div class="dropdown-option" data-value="warn">Warning</div>
+<div class="dropdown-option" data-value="error">Error</div>
+  </div>
+</div>
+          <button class="btn-secondary" style="padding:7px 14px;"><i data-lucide="refresh-cw" class="icon-svg sm"></i> Refresh</button>
+          <button class="btn-secondary" style="padding:7px 14px;"><i data-lucide="download" class="icon-svg sm"></i> Export</button>
+          <button class="btn-danger-outline" style="padding:7px 14px; margin-left:auto;"><i data-lucide="trash-2" class="icon-svg sm"></i> Clear Logs</button>
+        </div>
+
+        <div class="logs-container">
+          <div class="log-entry info">
+            <span class="log-time">20:11:05</span>
+            <span class="log-level-badge info">INFO</span>
+            <span class="log-msg">Application started successfully</span>
+          </div>
+          <div class="log-entry info">
+            <span class="log-time">20:11:06</span>
+            <span class="log-level-badge info">INFO</span>
+            <span class="log-msg">Router initialized. Active route: home</span>
+          </div>
+          <div class="log-entry warn">
+            <span class="log-time">20:11:08</span>
+            <span class="log-level-badge warn">WARN</span>
+            <span class="log-msg">OpenAI provider: API key not configured</span>
+          </div>
+          <div class="log-entry info">
+            <span class="log-time">20:11:09</span>
+            <span class="log-level-badge info">INFO</span>
+            <span class="log-msg">Lucide icons initialized (v1.21.0)</span>
+          </div>
+          <div class="log-entry error">
+            <span class="log-time">20:11:12</span>
+            <span class="log-level-badge error">ERROR</span>
+            <span class="log-msg">Tavily: Failed to fetch (API key missing)</span>
+          </div>
+          <div class="log-entry info">
+            <span class="log-time">20:12:01</span>
+            <span class="log-level-badge info">INFO</span>
+            <span class="log-msg">Navigated to view: settings</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPDATES -->
+      <div class="st-panel" id="st-updates">
+        <div class="st-section-header">
+          <h2 class="st-title">Updates</h2>
+          <p class="st-subtitle">Keep Cognetic up to date with the latest features and fixes.</p>
+        </div>
+
+        <div class="update-current-card">
+          <div class="update-icon">
+            <i data-lucide="package" class="icon-svg lg"></i>
+          </div>
+          <div class="update-info">
+            <div class="update-version">Cognetic v0.0.0</div>
+            <div class="update-channel">Release Channel: <strong>Stable</strong></div>
+          </div>
+          <div class="update-check-status">
+            <i data-lucide="check-circle-2" class="icon-svg" style="color:#4ade80;"></i>
+            Up to date
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Update Preferences</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Auto-check for Updates</div>
+              <div class="st-row-desc">Notify when a new version is available</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="upd-auto" checked /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Auto-download Updates</div>
+              <div class="st-row-desc">Download updates in the background</div>
+            </div>
+            <label class="toggle-pill"><input type="checkbox" id="upd-download" /><span class="pill-track"></span></label>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Release Channel</div>
+              <div class="st-row-desc">Choose between stable, beta, or nightly</div>
+            </div>
+            <div class="custom-dropdown" id="upd-channel" data-value="stable">
+  <div class="dropdown-selected">
+    <span class="selected-text">Stable</span>
+    <i data-lucide="chevron-down" class="icon-svg sm"></i>
+  </div>
+  <div class="dropdown-options">
+<div class="dropdown-option selected" data-value="stable">Stable</div>
+<div class="dropdown-option" data-value="beta">Beta</div>
+<div class="dropdown-option" data-value="nightly">Nightly</div>
+  </div>
+</div>
+          </div>
+        </div>
+
+        <div class="st-footer" style="justify-content:flex-start; gap:12px;">
+          <button class="btn-primary" id="check-updates-btn">
+            <i data-lucide="refresh-cw" class="icon-svg sm"></i> Check for Updates
+          </button>
+          <button class="btn-secondary">
+            <i data-lucide="list" class="icon-svg sm"></i> View Changelog
+          </button>
+        </div>
+      </div>
+
+      <!-- ABOUT -->
+      <div class="st-panel" id="st-about">
+        <div class="st-section-header">
+          <h2 class="st-title">About Cognetic</h2>
+          <p class="st-subtitle">Application information and open-source acknowledgements.</p>
+        </div>
+
+        <div class="about-card">
+          <div class="about-logo">
+            <i data-lucide="sparkles" class="icon-svg" style="width:36px;height:36px;color:#60a5fa;"></i>
+          </div>
+          <div class="about-name">Cognetic</div>
+          <div class="about-tagline">An intelligent, extensible AI agent framework</div>
+          <div class="about-version-row">
+            <span class="about-version-badge">v0.0.0</span>
+            <span class="about-build">Build: 2026-06-30 · Tauri 2 · Vite 8</span>
+          </div>
+        </div>
+
+        <div class="about-links">
+          <a href="#" class="about-link">
+            <i data-lucide="github" class="icon-svg sm"></i>
+            GitHub Repository
+            <i data-lucide="external-link" class="icon-svg sm" style="margin-left:auto;"></i>
+          </a>
+          <a href="#" class="about-link">
+            <i data-lucide="book-open" class="icon-svg sm"></i>
+            Documentation
+            <i data-lucide="external-link" class="icon-svg sm" style="margin-left:auto;"></i>
+          </a>
+          <a href="#" class="about-link">
+            <i data-lucide="message-square" class="icon-svg sm"></i>
+            Community Discord
+            <i data-lucide="external-link" class="icon-svg sm" style="margin-left:auto;"></i>
+          </a>
+          <a href="#" class="about-link">
+            <i data-lucide="bug" class="icon-svg sm"></i>
+            Report a Bug
+            <i data-lucide="external-link" class="icon-svg sm" style="margin-left:auto;"></i>
+          </a>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Technology Stack</div>
+          <div class="tech-stack">
+            <span class="tech-badge">Tauri 2</span>
+            <span class="tech-badge">Rust</span>
+            <span class="tech-badge">Vite 8</span>
+            <span class="tech-badge">JavaScript</span>
+            <span class="tech-badge">Lucide Icons</span>
+            <span class="tech-badge">marked.js</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BROWSER-CDP BRIDGE -->
+      <div class="st-panel" id="st-cdp">
+        <div class="st-section-header">
+          <h2 class="st-title">Browser-CDP Bridge</h2>
+          <p class="st-subtitle">Drive web-based LLMs (Google AI Studio) over Chrome DevTools Protocol — no API keys, your web login is the credential.</p>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">Connection</div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Bridge Status</div>
+              <div class="st-row-desc">Current state of the CDP browser bridge</div>
+            </div>
+            <span class="cdp-status-pill" id="cdp-status-pill">
+              <span class="cdp-status-dot" id="cdp-status-dot"></span>
+              <span id="cdp-status-text">Disconnected</span>
+            </span>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Launch AI Studio Bridge</div>
+              <div class="st-row-desc">Start a dedicated Chrome window with a persistent profile. Log into Google once — stays logged in across sessions.</div>
+            </div>
+            <button class="cdp-action-btn primary" id="cdp-launch-btn">
+              <i data-lucide="rocket" class="icon-svg sm"></i> Launch
+            </button>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">New Chat</div>
+              <div class="st-row-desc">Reset the AI Studio session and re-inject system instructions</div>
+            </div>
+            <button class="cdp-action-btn" id="cdp-newchat-btn">
+              <i data-lucide="plus-circle" class="icon-svg sm"></i> New Chat
+            </button>
+          </div>
+          <div class="st-row">
+            <div class="st-row-info">
+              <div class="st-row-label">Stop Bridge</div>
+              <div class="st-row-desc">Close the Chrome instance and free port 9222</div>
+            </div>
+            <button class="cdp-action-btn danger" id="cdp-stop-btn">
+              <i data-lucide="power" class="icon-svg sm"></i> Stop
+            </button>
+          </div>
+        </div>
+
+        <div class="st-group">
+          <div class="st-group-title">How it works</div>
+          <div class="cdp-info-block">
+            <p>The bridge launches a dedicated Chrome instance on <code>localhost:9222</code> using a persistent profile stored in your app data directory. The first time you launch, sign into Google AI Studio once — every subsequent launch keeps you logged in.</p>
+            <p>When you select the <strong>AI Studio (CDP)</strong> provider in the agent model picker, prompts are typed into the AI Studio web UI, the model's streamed output is intercepted, and any tool-call XML it emits is routed through Cognetic's existing tool engine — honoring your project's <code>base_paths</code> sandbox and the file-change tracker.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

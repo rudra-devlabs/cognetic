@@ -1,0 +1,695 @@
+<div class="view-channels">
+  <div class="top-nav">
+    <div class="nav-left">
+      <button class="back-btn" id="channels-back-btn">
+        <i data-lucide="arrow-left" class="icon-svg"></i>
+      </button>
+      <span class="logo-text">Cognetic</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab" id="nav-channels-webagents-tab">Web Agents</button>
+      <button class="nav-tab" id="nav-channels-integrations-tab">Integrations</button>
+      <button class="nav-tab" id="nav-channels-agents-tab">Agents</button>
+      <button class="nav-tab active" id="nav-channels-tab">Channels</button>
+      <button class="nav-tab" id="nav-channels-connectors-tab">Connectors</button>
+      <button class="nav-tab" id="nav-channels-browser-tab">Browser</button>
+      <button class="nav-tab" id="nav-channels-settings-tab">General</button>
+    </div>
+    <div class="nav-right">
+      <i data-lucide="help-circle" class="icon-svg"></i>
+      <button id="channels-home-btn" style="background:none;border:none;padding:0;display:flex;align-items:center;cursor:pointer;">
+        <i data-lucide="home" class="icon-svg"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="channels-layout">
+    <!-- Sidebar -->
+    <div class="channels-sidebar">
+      <div class="sidebar-section-label">Messaging</div>
+      <button class="ch-tab active" data-tab="slack"><i data-lucide="slack" class="icon-svg sm"></i> Slack</button>
+      <button class="ch-tab" data-tab="discord"><i data-lucide="message-circle" class="icon-svg sm"></i> Discord</button>
+      <button class="ch-tab" data-tab="telegram"><i data-lucide="send" class="icon-svg sm"></i> Telegram</button>
+      <button class="ch-tab" data-tab="whatsapp"><i data-lucide="phone" class="icon-svg sm"></i> WhatsApp</button>
+      <div class="sidebar-section-label" style="margin-top:16px;">Productivity</div>
+      <button class="ch-tab" data-tab="teams"><i data-lucide="users" class="icon-svg sm"></i> MS Teams</button>
+      <button class="ch-tab" data-tab="email"><i data-lucide="mail" class="icon-svg sm"></i> Email</button>
+      <button class="ch-tab" data-tab="webhook"><i data-lucide="webhook" class="icon-svg sm"></i> Webhook</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="channels-main">
+
+      <!-- SLACK -->
+      <div class="ch-panel active-panel" id="ch-slack">
+        <div class="ch-panel-header">
+          <div class="ch-header-icon slack-icon">
+            <i data-lucide="slack" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="ch-title">Slack Integration</h2>
+            <p class="ch-subtitle">Connect your agent to Slack workspaces and channels.</p>
+          </div>
+          <div class="ch-status disconnected" id="slack-status">
+            <span class="status-dot"></span> Disconnected
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="key" class="icon-svg"></i>
+              <h3>Authentication</h3>
+            </div>
+            <div class="form-group">
+              <label>Bot Token</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="key" class="icon-svg input-icon"></i>
+                </div>
+                <input type="password" placeholder="xoxb-..." id="slack-bot-token" />
+                <button class="toggle-visibility" type="button" aria-label="Toggle visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>App Token (Socket Mode)</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="zap" class="icon-svg input-icon"></i>
+                </div>
+                <input type="password" placeholder="xapp-..." id="slack-app-token" />
+                <button class="toggle-visibility" type="button" aria-label="Toggle visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Signing Secret</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="shield" class="icon-svg input-icon"></i>
+                </div>
+                <input type="password" placeholder="Secret..." id="slack-secret" />
+                <button class="toggle-visibility" type="button" aria-label="Toggle visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="settings-2" class="icon-svg"></i>
+              <h3>Behavior</h3>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Respond to Mentions</div>
+                <div class="toggle-desc">Agent replies when @mentioned</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="slack-mention" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Direct Messages</div>
+                <div class="toggle-desc">Handle DMs sent to the bot</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="slack-dm" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Thread Replies</div>
+                <div class="toggle-desc">Reply within the same thread</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="slack-thread" /><span class="pill-track"></span></label>
+            </div>
+            <div class="form-group" style="margin-top:8px;">
+              <label>Allowed Channels (comma-separated)</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="hash" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="#general, #support, ..." id="slack-channels" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-test" id="slack-test-btn"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save & Connect</button>
+        </div>
+      </div>
+
+      <!-- DISCORD -->
+      <div class="ch-panel" id="ch-discord">
+        <div class="ch-panel-header">
+          <div class="ch-header-icon discord-icon">
+            <i data-lucide="message-circle" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="ch-title">Discord Integration</h2>
+            <p class="ch-subtitle">Deploy your agent as a Discord bot in servers and channels.</p>
+          </div>
+          <div class="ch-status disconnected" id="discord-status">
+            <span class="status-dot"></span> Disconnected
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="key" class="icon-svg"></i>
+              <h3>Bot Credentials</h3>
+            </div>
+            <div class="form-group">
+              <label>Bot Token</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="key" class="icon-svg input-icon"></i>
+                </div>
+                <input type="password" placeholder="MTxxxxxx..." id="discord-token" />
+                <button class="toggle-visibility" type="button" aria-label="Toggle visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Application ID</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="hash" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="1234567890..." id="discord-app-id" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Guild ID (optional, for server-specific)</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="server" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="Guild ID..." id="discord-guild-id" />
+              </div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="sliders-horizontal" class="icon-svg"></i>
+              <h3>Behavior</h3>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Slash Commands</div>
+                <div class="toggle-desc">Register /ask and /chat commands</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="discord-slash" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Mention Trigger</div>
+                <div class="toggle-desc">Respond when bot is @mentioned</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="discord-mention" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">DM Support</div>
+                <div class="toggle-desc">Allow private messages to bot</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="discord-dm" /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Embed Responses</div>
+                <div class="toggle-desc">Format replies as Discord embeds</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="discord-embed" checked /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save & Connect</button>
+        </div>
+      </div>
+
+      <!-- TELEGRAM -->
+      <div class="ch-panel" id="ch-telegram">
+        <div class="ch-panel-header">
+          <div class="ch-header-icon telegram-icon">
+            <i data-lucide="send" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="ch-title">Telegram Integration</h2>
+            <p class="ch-subtitle">Deploy your agent as a Telegram bot for groups and private chats.</p>
+          </div>
+          <div class="ch-status disconnected" id="telegram-status">
+            <span class="status-dot"></span> Disconnected
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="key" class="icon-svg"></i>
+              <h3>Bot Configuration</h3>
+            </div>
+            <div class="form-group">
+              <label>Bot Token <a href="#" class="help-link">Get from @BotFather <i data-lucide="external-link" class="icon-svg sm"></i></a></label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="key" class="icon-svg input-icon"></i>
+                </div>
+                <input type="password" placeholder="1234567890:ABC..." id="telegram-token" />
+                <button class="toggle-visibility" type="button" aria-label="Toggle visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Webhook URL (for production)</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="globe" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="https://your-domain.com/webhook" id="telegram-webhook" />
+              </div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="settings-2" class="icon-svg"></i>
+              <h3>Behavior</h3>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Private Chats</div>
+                <div class="toggle-desc">Respond in private conversations</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="tg-private" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Group Chats</div>
+                <div class="toggle-desc">Respond in group conversations</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="tg-group" /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Inline Mode</div>
+                <div class="toggle-desc">Answer @botname queries inline</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="tg-inline" /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Polling Mode</div>
+                <div class="toggle-desc">Use long polling instead of webhook</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="tg-polling" checked /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save & Connect</button>
+        </div>
+      </div>
+
+      <!-- WHATSAPP -->
+      <div class="ch-panel" id="ch-whatsapp">
+        <div class="ch-panel-header">
+          <div class="ch-header-icon whatsapp-icon">
+            <i data-lucide="phone" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="ch-title">WhatsApp Integration</h2>
+            <p class="ch-subtitle">Connect via WhatsApp Business API (Meta Cloud API).</p>
+          </div>
+          <div class="ch-status disconnected">
+            <span class="status-dot"></span> Disconnected
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="key" class="icon-svg"></i>
+              <h3>Meta API Credentials</h3>
+            </div>
+            <div class="form-group">
+              <label>Access Token</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="key" class="icon-svg input-icon"></i>
+                </div>
+                <input type="password" placeholder="EAA..." id="wa-token" />
+                <button class="toggle-visibility" type="button" aria-label="Toggle visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Phone Number ID</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="phone" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="1234567..." id="wa-phone-id" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Verify Token (Webhook)</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="shield-check" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="your_verify_token" id="wa-verify" />
+              </div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="settings-2" class="icon-svg"></i>
+              <h3>Message Settings</h3>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Auto Reply</div>
+                <div class="toggle-desc">Automatically respond to messages</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="wa-auto" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Read Receipts</div>
+                <div class="toggle-desc">Send read receipts when processed</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="wa-read" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Media Messages</div>
+                <div class="toggle-desc">Process images and documents</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="wa-media" /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save & Connect</button>
+        </div>
+      </div>
+
+      <!-- MS TEAMS -->
+      <div class="ch-panel" id="ch-teams">
+        <div class="ch-panel-header">
+          <div class="ch-header-icon teams-icon">
+            <i data-lucide="users" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="ch-title">Microsoft Teams</h2>
+            <p class="ch-subtitle">Integrate your agent into Teams channels and conversations.</p>
+          </div>
+          <div class="ch-status disconnected">
+            <span class="status-dot"></span> Disconnected
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="key" class="icon-svg"></i>
+              <h3>Azure App Registration</h3>
+            </div>
+            <div class="form-group">
+              <label>Microsoft App ID</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="hash" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="App ID (GUID)..." id="teams-app-id" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Client Secret</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="key" class="icon-svg input-icon"></i>
+                </div>
+                <input type="password" placeholder="Secret value..." id="teams-secret" />
+                <button class="toggle-visibility" type="button" aria-label="Toggle visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Tenant ID</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="building" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="Tenant ID (GUID)..." id="teams-tenant" />
+              </div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="sliders-horizontal" class="icon-svg"></i>
+              <h3>Behavior</h3>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Adaptive Cards</div>
+                <div class="toggle-desc">Format responses as Adaptive Cards</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="teams-cards" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Channel Messages</div>
+                <div class="toggle-desc">Read and respond in channels</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="teams-channel" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">1:1 Chat</div>
+                <div class="toggle-desc">Support personal conversations</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="teams-1on1" checked /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save & Connect</button>
+        </div>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="ch-panel" id="ch-email">
+        <div class="ch-panel-header">
+          <div class="ch-header-icon email-icon">
+            <i data-lucide="mail" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="ch-title">Email Channel</h2>
+            <p class="ch-subtitle">Respond to emails via SMTP/IMAP or transactional email APIs.</p>
+          </div>
+          <div class="ch-status disconnected">
+            <span class="status-dot"></span> Disconnected
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="server" class="icon-svg"></i>
+              <h3>IMAP (Inbound)</h3>
+            </div>
+            <div class="form-group">
+              <label>IMAP Host</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="globe" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="imap.gmail.com" id="email-imap-host" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Username / Email</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="at-sign" class="icon-svg input-icon"></i>
+                </div>
+                <input type="email" placeholder="agent@yourdomain.com" id="email-user" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Password / App Password</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="key" class="icon-svg input-icon"></i>
+                </div>
+                <input type="password" placeholder="Password..." id="email-pass" />
+                <button class="toggle-visibility" type="button" aria-label="Toggle visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="send" class="icon-svg"></i>
+              <h3>SMTP (Outbound)</h3>
+            </div>
+            <div class="form-group">
+              <label>SMTP Host</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="globe" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="smtp.gmail.com" id="email-smtp-host" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>SMTP Port</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="hash" class="icon-svg input-icon"></i>
+                </div>
+                <input type="text" placeholder="587" id="email-smtp-port" />
+              </div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">TLS Encryption</div>
+                <div class="toggle-desc">Use STARTTLS for secure sending</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="email-tls" checked /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save & Connect</button>
+        </div>
+      </div>
+
+      <!-- WEBHOOK -->
+      <div class="ch-panel" id="ch-webhook">
+        <div class="ch-panel-header">
+          <div class="ch-header-icon webhook-icon">
+            <i data-lucide="webhook" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="ch-title">Webhook Channel</h2>
+            <p class="ch-subtitle">Receive events from any HTTP source and respond programmatically.</p>
+          </div>
+          <div class="ch-status connected">
+            <span class="status-dot green"></span> Active
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="link" class="icon-svg"></i>
+              <h3>Endpoint</h3>
+            </div>
+            <div class="form-group">
+              <label>Your Webhook URL</label>
+              <div class="webhook-url-box">
+                <span id="webhook-url-text">https://cognetic.app/hook/abc123xyz</span>
+                <button class="btn-copy" id="copy-webhook-btn"><i data-lucide="copy" class="icon-svg sm"></i> Copy</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Secret Key (HMAC Verification)</label>
+              <div class="modern-input-wrapper">
+                <div class="modern-input-indicator"></div>
+                <div class="modern-input-icon">
+                  <i data-lucide="shield" class="icon-svg input-icon"></i>
+                </div>
+                <input type="password" placeholder="Your signing secret..." id="webhook-secret" />
+                <button class="toggle-visibility" type="button" aria-label="Toggle visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="settings-2" class="icon-svg"></i>
+              <h3>Configuration</h3>
+            </div>
+            <div class="form-group dropdown-field">
+              <label>Payload Format</label>
+              <div class="custom-dropdown modern-dropdown" id="webhook-format-dropdown" data-value="json">
+                <div class="dropdown-selected" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false">
+                  <div class="modern-input-indicator"></div>
+                  <div class="modern-input-icon">
+                    <i data-lucide="braces" class="icon-svg input-icon"></i>
+                  </div>
+                  <span class="selected-text">JSON</span>
+                  <i data-lucide="chevron-down" class="icon-svg sm dropdown-chevron"></i>
+                </div>
+                <div class="dropdown-options" role="listbox" aria-label="Payload Format">
+                  <div class="dropdown-option selected" data-value="json" role="option" aria-selected="true">JSON</div>
+                  <div class="dropdown-option" data-value="form" role="option" aria-selected="false">Form URL-encoded</div>
+                  <div class="dropdown-option" data-value="xml" role="option" aria-selected="false">XML</div>
+                </div>
+              </div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Verify HMAC Signature</div>
+                <div class="toggle-desc">Reject unauthenticated requests</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="wh-hmac" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Return Response</div>
+                <div class="toggle-desc">Include agent reply in HTTP response</div>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="wh-response" checked /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-test"><i data-lucide="activity" class="icon-svg sm"></i> View Logs</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Changes</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -31,7 +31,7 @@ export function renderToolbar(container) {
     if(settingsBtn) {
         settingsBtn.addEventListener('click', () => {
             if(window.router) {
-                window.router.navigate('agents');
+                window.router.navigate('settings');
             }
         });
     }

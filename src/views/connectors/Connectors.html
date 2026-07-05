@@ -1,0 +1,831 @@
+<div class="view-connectors">
+  <!-- Top Navigation Bar -->
+  <div class="top-nav">
+    <div class="nav-left">
+      <button class="back-btn" id="connectors-back-btn">
+        <i data-lucide="arrow-left" class="icon-svg"></i>
+      </button>
+      <span class="logo-text">Cognetic</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab" id="nav-conn-webagents-tab">Web Agents</button>
+      <button class="nav-tab" id="nav-conn-integrations-tab">Integrations</button>
+      <button class="nav-tab" id="nav-conn-agents-tab">Agents</button>
+      <button class="nav-tab" id="nav-conn-channels-tab">Channels</button>
+      <button class="nav-tab active" id="nav-conn-tab">Connectors</button>
+      <button class="nav-tab" id="nav-conn-browser-tab">Browser</button>
+      <button class="nav-tab" id="nav-conn-settings-tab">General</button>
+    </div>
+    <div class="nav-right">
+      <i data-lucide="help-circle" class="icon-svg"></i>
+      <button id="connectors-home-btn" style="background:none;border:none;padding:0;display:flex;align-items:center;cursor:pointer;">
+        <i data-lucide="home" class="icon-svg"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="connectors-layout">
+
+    <!-- ── Left Sidebar ────────────────────────────────────────────── -->
+    <nav class="connectors-sidebar">
+      <div class="sidebar-header">
+        <i data-lucide="plug" class="icon-svg sidebar-header-icon"></i>
+        <span>Connectors</span>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-section-label">Data &amp; Storage</div>
+        <button class="cn-tab active" data-tab="database">
+          <span class="cn-tab-icon db">
+            <i data-lucide="database" class="icon-svg sm"></i>
+          </span>
+          <span class="cn-tab-text">
+            Database
+            <em>PostgreSQL, MySQL, SQLite…</em>
+          </span>
+          <span class="cn-badge offline">Off</span>
+        </button>
+        <button class="cn-tab" data-tab="files">
+          <span class="cn-tab-icon files">
+            <i data-lucide="folder-open" class="icon-svg sm"></i>
+          </span>
+          <span class="cn-tab-text">
+            File System
+            <em>Local &amp; remote paths</em>
+          </span>
+          <span class="cn-badge offline">Off</span>
+        </button>
+        <button class="cn-tab" data-tab="vector">
+          <span class="cn-tab-icon vector">
+            <i data-lucide="layers" class="icon-svg sm"></i>
+          </span>
+          <span class="cn-tab-text">
+            Vector Store
+            <em>Pinecone, Qdrant, Chroma…</em>
+          </span>
+          <span class="cn-badge offline">Off</span>
+        </button>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-section-label">APIs &amp; Services</div>
+        <button class="cn-tab" data-tab="rest">
+          <span class="cn-tab-icon rest">
+            <i data-lucide="braces" class="icon-svg sm"></i>
+          </span>
+          <span class="cn-tab-text">
+            REST API
+            <em>Any HTTP endpoint</em>
+          </span>
+          <span class="cn-badge offline">Off</span>
+        </button>
+        <button class="cn-tab" data-tab="github">
+          <span class="cn-tab-icon github">
+            <i data-lucide="github" class="icon-svg sm"></i>
+          </span>
+          <span class="cn-tab-text">
+            GitHub
+            <em>Repos, PRs &amp; issues</em>
+          </span>
+          <span class="cn-badge offline">Off</span>
+        </button>
+        <button class="cn-tab" data-tab="notion">
+          <span class="cn-tab-icon notion">
+            <i data-lucide="book-open" class="icon-svg sm"></i>
+          </span>
+          <span class="cn-tab-text">
+            Notion
+            <em>Pages &amp; databases</em>
+          </span>
+          <span class="cn-badge offline">Off</span>
+        </button>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-section-label">Messaging</div>
+        <button class="cn-tab" data-tab="kafka">
+          <span class="cn-tab-icon kafka">
+            <i data-lucide="activity" class="icon-svg sm"></i>
+          </span>
+          <span class="cn-tab-text">
+            Kafka / MQ
+            <em>Kafka, RabbitMQ, SQS…</em>
+          </span>
+          <span class="cn-badge offline">Off</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ── Main Content ────────────────────────────────────────────── -->
+    <main class="connectors-main">
+
+      <!-- ══════════════════════ DATABASE ════════════════════════ -->
+      <div class="cn-panel active-panel" id="cn-database">
+
+        <!-- Hero Banner -->
+        <div class="cn-hero db-hero">
+          <div class="cn-hero-glow db-glow"></div>
+          <div class="cn-hero-left">
+            <div class="cn-hero-icon db-icon">
+              <i data-lucide="database" class="icon-svg xl"></i>
+            </div>
+            <div class="cn-hero-copy">
+              <h1 class="cn-hero-title">Database Connector</h1>
+              <p class="cn-hero-desc">Connect to SQL or NoSQL databases to read and write data.</p>
+            </div>
+          </div>
+          <div class="cn-status-pill disconnected">
+            <span class="status-dot"></span>
+            <span>Disconnected</span>
+          </div>
+        </div>
+
+        <!-- DB Type Selector -->
+        <section class="cn-section">
+          <div class="cn-section-header">
+            <i data-lucide="layers" class="icon-svg sm"></i>
+            <h2>Database Type</h2>
+          </div>
+          <div class="cn-chip-row">
+            <button class="cn-chip active" data-db="postgres">
+              <span class="chip-dot" style="background:#336791"></span>PostgreSQL
+            </button>
+            <button class="cn-chip" data-db="mysql">
+              <span class="chip-dot" style="background:#f29111"></span>MySQL
+            </button>
+            <button class="cn-chip" data-db="sqlite">
+              <span class="chip-dot" style="background:#64a0c8"></span>SQLite
+            </button>
+            <button class="cn-chip" data-db="mongodb">
+              <span class="chip-dot" style="background:#4db33d"></span>MongoDB
+            </button>
+            <button class="cn-chip" data-db="redis">
+              <span class="chip-dot" style="background:#d82c20"></span>Redis
+            </button>
+          </div>
+        </section>
+
+        <!-- 2-col grid -->
+        <div class="cn-grid-2">
+          <!-- Connection Card -->
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon">
+                <i data-lucide="server" class="icon-svg sm"></i>
+              </div>
+              <div>
+                <h3>Connection</h3>
+                <p>Server details &amp; credentials</p>
+              </div>
+            </div>
+
+            <div class="cn-field">
+              <label for="db-connstr">Connection String</label>
+              <div class="cn-input-row">
+                <i data-lucide="link" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="db-connstr" placeholder="postgres://user:pass@host:5432/db" />
+              </div>
+              <p class="cn-hint">Or fill the individual fields below.</p>
+            </div>
+
+            <div class="cn-divider-row"><span>or</span></div>
+
+            <div class="cn-field">
+              <label for="db-host">Host</label>
+              <div class="cn-input-row">
+                <i data-lucide="globe" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="db-host" placeholder="localhost" />
+              </div>
+            </div>
+
+            <div class="cn-field-pair">
+              <div class="cn-field">
+                <label for="db-port">Port</label>
+                <input class="cn-bare-input" type="text" id="db-port" placeholder="5432" />
+              </div>
+              <div class="cn-field">
+                <label for="db-name">Database</label>
+                <input class="cn-bare-input" type="text" id="db-name" placeholder="mydb" />
+              </div>
+            </div>
+
+            <div class="cn-field-pair">
+              <div class="cn-field">
+                <label for="db-user">Username</label>
+                <input class="cn-bare-input" type="text" id="db-user" placeholder="postgres" />
+              </div>
+              <div class="cn-field">
+                <label for="db-pass">Password</label>
+                <div class="cn-input-row">
+                  <input type="password" id="db-pass" placeholder="••••••••" style="padding-left:12px;" />
+                  <button class="toggle-visibility" aria-label="Toggle password">
+                    <i data-lucide="eye" class="icon-svg sm"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security Card -->
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon">
+                <i data-lucide="shield-check" class="icon-svg sm"></i>
+              </div>
+              <div>
+                <h3>Security &amp; Behavior</h3>
+                <p>Encryption, access &amp; pooling</p>
+              </div>
+            </div>
+
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info">
+                <span>SSL / TLS</span>
+                <em>Require encrypted connections</em>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="db-ssl" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info">
+                <span>Read Only</span>
+                <em>Agent can only SELECT, not mutate</em>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="db-readonly" /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info">
+                <span>Connection Pooling</span>
+                <em>Reuse connections for performance</em>
+              </div>
+              <label class="toggle-pill"><input type="checkbox" id="db-pool" checked /><span class="pill-track"></span></label>
+            </div>
+
+            <div class="cn-field-pair">
+              <div class="cn-field">
+                <label for="db-pool-size">Max Pool Size</label>
+                <input class="cn-bare-input" type="number" id="db-pool-size" placeholder="10" min="1" max="100" />
+              </div>
+              <div class="cn-field">
+                <label for="db-timeout">Timeout (ms)</label>
+                <input class="cn-bare-input" type="number" id="db-timeout" placeholder="5000" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="cn-footer">
+          <button class="cn-btn-ghost"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <div class="cn-footer-right">
+            <button class="cn-btn-test btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+            <button class="cn-btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Connector</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ FILE SYSTEM ════════════════════════ -->
+      <div class="cn-panel" id="cn-files">
+        <div class="cn-hero files-hero">
+          <div class="cn-hero-glow files-glow"></div>
+          <div class="cn-hero-left">
+            <div class="cn-hero-icon files-icon">
+              <i data-lucide="folder-open" class="icon-svg xl"></i>
+            </div>
+            <div class="cn-hero-copy">
+              <h1 class="cn-hero-title">File System Connector</h1>
+              <p class="cn-hero-desc">Give the agent access to local or remote file directories.</p>
+            </div>
+          </div>
+          <div class="cn-status-pill disconnected">
+            <span class="status-dot"></span>
+            <span>Disconnected</span>
+          </div>
+        </div>
+
+        <div class="cn-grid-2">
+          <!-- Paths Card -->
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon">
+                <i data-lucide="folder" class="icon-svg sm"></i>
+              </div>
+              <div><h3>Paths</h3><p>Root directory &amp; file filters</p></div>
+            </div>
+            <div class="cn-field">
+              <label for="fs-root">Root Directory</label>
+              <div class="cn-input-row">
+                <i data-lucide="folder-open" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="fs-root" placeholder="/home/user/data or C:\data" />
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="fs-exts">Allowed Extensions</label>
+              <div class="cn-input-row">
+                <i data-lucide="file-type" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="fs-exts" placeholder=".txt, .pdf, .md, .csv" />
+              </div>
+              <p class="cn-hint">Comma-separated list. Leave blank to allow all.</p>
+            </div>
+            <div class="cn-field">
+              <label for="fs-maxsize">Max File Size (MB)</label>
+              <div class="cn-input-row">
+                <i data-lucide="hard-drive" class="icon-svg sm cn-input-icon"></i>
+                <input type="number" id="fs-maxsize" placeholder="25" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Permissions Card -->
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon">
+                <i data-lucide="shield" class="icon-svg sm"></i>
+              </div>
+              <div><h3>Permissions</h3><p>Control agent access level</p></div>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Read Files</span><em>Allow reading file contents</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="fs-read" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Write Files</span><em>Allow creating &amp; modifying files</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="fs-write" /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Delete Files</span><em>Allow deleting files (use caution)</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="fs-delete" /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Recursive Access</span><em>Access subdirectories recursively</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="fs-recursive" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Watch for Changes</span><em>React to new or modified files</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="fs-watch" /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="cn-footer">
+          <button class="cn-btn-ghost"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <div class="cn-footer-right">
+            <button class="cn-btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Connector</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ VECTOR STORE ════════════════════════ -->
+      <div class="cn-panel" id="cn-vector">
+        <div class="cn-hero vector-hero">
+          <div class="cn-hero-glow vector-glow"></div>
+          <div class="cn-hero-left">
+            <div class="cn-hero-icon vector-icon">
+              <i data-lucide="layers" class="icon-svg xl"></i>
+            </div>
+            <div class="cn-hero-copy">
+              <h1 class="cn-hero-title">Vector Store</h1>
+              <p class="cn-hero-desc">Connect to an embedding database for semantic search and RAG.</p>
+            </div>
+          </div>
+          <div class="cn-status-pill disconnected">
+            <span class="status-dot"></span>
+            <span>Disconnected</span>
+          </div>
+        </div>
+
+        <section class="cn-section">
+          <div class="cn-section-header">
+            <i data-lucide="layers" class="icon-svg sm"></i>
+            <h2>Provider</h2>
+          </div>
+          <div class="cn-chip-row">
+            <button class="cn-chip active" data-vs="pinecone"><span class="chip-dot" style="background:#3b82f6"></span>Pinecone</button>
+            <button class="cn-chip" data-vs="qdrant"><span class="chip-dot" style="background:#dc1e3a"></span>Qdrant</button>
+            <button class="cn-chip" data-vs="weaviate"><span class="chip-dot" style="background:#fa0050"></span>Weaviate</button>
+            <button class="cn-chip" data-vs="chroma"><span class="chip-dot" style="background:#f97316"></span>ChromaDB</button>
+            <button class="cn-chip" data-vs="pgvector"><span class="chip-dot" style="background:#336791"></span>pgvector</button>
+          </div>
+        </section>
+
+        <div class="cn-grid-2">
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="key" class="icon-svg sm"></i></div>
+              <div><h3>Connection</h3><p>API key &amp; endpoint</p></div>
+            </div>
+            <div class="cn-field">
+              <label for="vs-apikey">API Key</label>
+              <div class="cn-input-row">
+                <i data-lucide="key" class="icon-svg sm cn-input-icon"></i>
+                <input type="password" id="vs-apikey" placeholder="pk-..." />
+                <button class="toggle-visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="vs-host">Host / Cloud URL</label>
+              <div class="cn-input-row">
+                <i data-lucide="globe" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="vs-host" placeholder="https://xxx.svc.pinecone.io" />
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="vs-index">Index / Collection Name</label>
+              <div class="cn-input-row">
+                <i data-lucide="layers" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="vs-index" placeholder="my-knowledge-base" />
+              </div>
+            </div>
+          </div>
+
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="cpu" class="icon-svg sm"></i></div>
+              <div><h3>Embedding Settings</h3><p>Model &amp; retrieval config</p></div>
+            </div>
+            <div class="cn-field">
+              <label for="vs-embed-model">Embedding Model</label>
+              <select class="cn-select" id="vs-embed-model">
+                <option value="text-embedding-3-small">OpenAI text-embedding-3-small</option>
+                <option value="text-embedding-3-large">OpenAI text-embedding-3-large</option>
+                <option value="embed-english-v3">Cohere embed-english-v3</option>
+                <option value="local">Local (Sentence Transformers)</option>
+              </select>
+            </div>
+            <div class="cn-field-pair">
+              <div class="cn-field">
+                <label for="vs-dims">Dimensions</label>
+                <input class="cn-bare-input" type="number" id="vs-dims" placeholder="1536" />
+              </div>
+              <div class="cn-field">
+                <label for="vs-topk">Top-K Results</label>
+                <input class="cn-bare-input" type="number" id="vs-topk" placeholder="5" min="1" max="50" />
+              </div>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Similarity Threshold</span><em>Filter by minimum score (0.7)</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="vs-threshold" checked /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="cn-footer">
+          <button class="cn-btn-ghost"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <div class="cn-footer-right">
+            <button class="cn-btn-test btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+            <button class="cn-btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Connector</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ REST API ════════════════════════ -->
+      <div class="cn-panel" id="cn-rest">
+        <div class="cn-hero rest-hero">
+          <div class="cn-hero-glow rest-glow"></div>
+          <div class="cn-hero-left">
+            <div class="cn-hero-icon rest-icon">
+              <i data-lucide="braces" class="icon-svg xl"></i>
+            </div>
+            <div class="cn-hero-copy">
+              <h1 class="cn-hero-title">REST API Connector</h1>
+              <p class="cn-hero-desc">Call any external REST API from your agent tools.</p>
+            </div>
+          </div>
+          <div class="cn-status-pill disconnected">
+            <span class="status-dot"></span>
+            <span>Disconnected</span>
+          </div>
+        </div>
+
+        <div class="cn-grid-2">
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="globe" class="icon-svg sm"></i></div>
+              <div><h3>Endpoint</h3><p>URL &amp; authentication</p></div>
+            </div>
+            <div class="cn-field">
+              <label for="rest-base-url">Base URL</label>
+              <div class="cn-input-row">
+                <i data-lucide="globe" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="rest-base-url" placeholder="https://api.example.com/v1" />
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="rest-auth-type">Authentication Type</label>
+              <select class="cn-select" id="rest-auth-type">
+                <option value="bearer">Bearer Token</option>
+                <option value="apikey">API Key (Header)</option>
+                <option value="basic">Basic Auth</option>
+                <option value="oauth2">OAuth 2.0</option>
+                <option value="none">No Auth</option>
+              </select>
+            </div>
+            <div class="cn-field">
+              <label for="rest-token">Token / Key Value</label>
+              <div class="cn-input-row">
+                <i data-lucide="key" class="icon-svg sm cn-input-icon"></i>
+                <input type="password" id="rest-token" placeholder="Bearer ..." />
+                <button class="toggle-visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="rest-headers">Custom Headers (JSON)</label>
+              <textarea class="cn-textarea" id="rest-headers" placeholder='{"X-Custom-Header": "value"}'></textarea>
+            </div>
+          </div>
+
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="settings-2" class="icon-svg sm"></i></div>
+              <div><h3>Request Settings</h3><p>Timeouts, retries &amp; redirects</p></div>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Follow Redirects</span><em>Automatically follow HTTP redirects</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="rest-redirect" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Verify SSL</span><em>Reject invalid certificates</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="rest-ssl" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-field-pair" style="margin-top:8px;">
+              <div class="cn-field">
+                <label for="rest-timeout">Timeout (ms)</label>
+                <input class="cn-bare-input" type="number" id="rest-timeout" placeholder="10000" />
+              </div>
+              <div class="cn-field">
+                <label for="rest-retries">Max Retries</label>
+                <input class="cn-bare-input" type="number" id="rest-retries" placeholder="3" min="0" max="10" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cn-footer">
+          <button class="cn-btn-ghost"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <div class="cn-footer-right">
+            <button class="cn-btn-test btn-test"><i data-lucide="play" class="icon-svg sm"></i> Send Test Request</button>
+            <button class="cn-btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Connector</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ GITHUB ════════════════════════ -->
+      <div class="cn-panel" id="cn-github">
+        <div class="cn-hero github-hero">
+          <div class="cn-hero-glow github-glow"></div>
+          <div class="cn-hero-left">
+            <div class="cn-hero-icon github-icon">
+              <i data-lucide="github" class="icon-svg xl"></i>
+            </div>
+            <div class="cn-hero-copy">
+              <h1 class="cn-hero-title">GitHub Connector</h1>
+              <p class="cn-hero-desc">Access repositories, issues, PRs, and workflows via GitHub API.</p>
+            </div>
+          </div>
+          <div class="cn-status-pill disconnected">
+            <span class="status-dot"></span>
+            <span>Disconnected</span>
+          </div>
+        </div>
+
+        <div class="cn-grid-2">
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="key" class="icon-svg sm"></i></div>
+              <div><h3>Authentication</h3><p>Personal Access Token</p></div>
+            </div>
+            <div class="cn-field">
+              <label for="gh-token">
+                Personal Access Token
+                <a href="#" class="cn-help-link">Create token <i data-lucide="external-link" class="icon-svg sm"></i></a>
+              </label>
+              <div class="cn-input-row">
+                <i data-lucide="key" class="icon-svg sm cn-input-icon"></i>
+                <input type="password" id="gh-token" placeholder="ghp_..." />
+                <button class="toggle-visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="gh-repo">Default Repository</label>
+              <div class="cn-input-row">
+                <i data-lucide="github" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="gh-repo" placeholder="owner/repo-name" />
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="gh-branch">Default Branch</label>
+              <div class="cn-input-row">
+                <i data-lucide="git-branch" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="gh-branch" placeholder="main" />
+              </div>
+            </div>
+          </div>
+
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="sliders-horizontal" class="icon-svg sm"></i></div>
+              <div><h3>Permissions</h3><p>Agent capabilities on GitHub</p></div>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Read Code</span><em>Access file contents &amp; commits</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="gh-read-code" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Create PRs</span><em>Open pull requests on behalf of user</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="gh-pr" /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Manage Issues</span><em>Create, close &amp; comment on issues</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="gh-issues" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Trigger Workflows</span><em>Dispatch GitHub Actions workflows</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="gh-workflows" /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="cn-footer">
+          <button class="cn-btn-ghost"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <div class="cn-footer-right">
+            <button class="cn-btn-test btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+            <button class="cn-btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Connector</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ NOTION ════════════════════════ -->
+      <div class="cn-panel" id="cn-notion">
+        <div class="cn-hero notion-hero">
+          <div class="cn-hero-glow notion-glow"></div>
+          <div class="cn-hero-left">
+            <div class="cn-hero-icon notion-icon">
+              <i data-lucide="book-open" class="icon-svg xl"></i>
+            </div>
+            <div class="cn-hero-copy">
+              <h1 class="cn-hero-title">Notion Connector</h1>
+              <p class="cn-hero-desc">Read and write Notion pages, databases, and blocks.</p>
+            </div>
+          </div>
+          <div class="cn-status-pill disconnected">
+            <span class="status-dot"></span>
+            <span>Disconnected</span>
+          </div>
+        </div>
+
+        <div class="cn-grid-2">
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="key" class="icon-svg sm"></i></div>
+              <div><h3>Integration Token</h3><p>Internal token for API access</p></div>
+            </div>
+            <div class="cn-field">
+              <label for="notion-token">
+                Integration Token
+                <a href="#" class="cn-help-link">Get token <i data-lucide="external-link" class="icon-svg sm"></i></a>
+              </label>
+              <div class="cn-input-row">
+                <i data-lucide="key" class="icon-svg sm cn-input-icon"></i>
+                <input type="password" id="notion-token" placeholder="secret_..." />
+                <button class="toggle-visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="notion-db">Default Database ID</label>
+              <div class="cn-input-row">
+                <i data-lucide="table" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="notion-db" placeholder="32-char UUID..." />
+              </div>
+            </div>
+          </div>
+
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="settings-2" class="icon-svg sm"></i></div>
+              <div><h3>Capabilities</h3><p>What the agent can do in Notion</p></div>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Read Pages</span><em>Retrieve page content &amp; properties</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="notion-read" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Create Pages</span><em>Add new pages to databases</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="notion-create" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Update Pages</span><em>Modify existing page properties</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="notion-update" /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Search Workspace</span><em>Search across shared pages</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="notion-search" checked /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="cn-footer">
+          <button class="cn-btn-ghost"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <div class="cn-footer-right">
+            <button class="cn-btn-test btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+            <button class="cn-btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Connector</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════ KAFKA / MQ ════════════════════════ -->
+      <div class="cn-panel" id="cn-kafka">
+        <div class="cn-hero kafka-hero">
+          <div class="cn-hero-glow kafka-glow"></div>
+          <div class="cn-hero-left">
+            <div class="cn-hero-icon kafka-icon">
+              <i data-lucide="activity" class="icon-svg xl"></i>
+            </div>
+            <div class="cn-hero-copy">
+              <h1 class="cn-hero-title">Kafka / Message Queue</h1>
+              <p class="cn-hero-desc">Consume or produce messages from Kafka, RabbitMQ, or Redis Streams.</p>
+            </div>
+          </div>
+          <div class="cn-status-pill disconnected">
+            <span class="status-dot"></span>
+            <span>Disconnected</span>
+          </div>
+        </div>
+
+        <section class="cn-section">
+          <div class="cn-section-header">
+            <i data-lucide="activity" class="icon-svg sm"></i>
+            <h2>Broker Type</h2>
+          </div>
+          <div class="cn-chip-row">
+            <button class="cn-chip active" data-mq="kafka"><span class="chip-dot" style="background:#e66000"></span>Apache Kafka</button>
+            <button class="cn-chip" data-mq="rabbitmq"><span class="chip-dot" style="background:#f60"></span>RabbitMQ</button>
+            <button class="cn-chip" data-mq="redis-streams"><span class="chip-dot" style="background:#d82c20"></span>Redis Streams</button>
+            <button class="cn-chip" data-mq="sqs"><span class="chip-dot" style="background:#f90"></span>AWS SQS</button>
+          </div>
+        </section>
+
+        <div class="cn-grid-2">
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="server" class="icon-svg sm"></i></div>
+              <div><h3>Broker Connection</h3><p>Server, topic &amp; group</p></div>
+            </div>
+            <div class="cn-field">
+              <label for="kafka-brokers">Bootstrap Servers</label>
+              <div class="cn-input-row">
+                <i data-lucide="server" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="kafka-brokers" placeholder="localhost:9092,broker2:9092" />
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="kafka-topic">Topic</label>
+              <div class="cn-input-row">
+                <i data-lucide="hash" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="kafka-topic" placeholder="agent-events" />
+              </div>
+            </div>
+            <div class="cn-field">
+              <label for="kafka-group">Consumer Group</label>
+              <div class="cn-input-row">
+                <i data-lucide="users" class="icon-svg sm cn-input-icon"></i>
+                <input type="text" id="kafka-group" placeholder="cognetic-group" />
+              </div>
+            </div>
+          </div>
+
+          <div class="cn-card">
+            <div class="cn-card-head">
+              <div class="cn-card-icon"><i data-lucide="shield" class="icon-svg sm"></i></div>
+              <div><h3>Security &amp; Behavior</h3><p>SASL, TLS &amp; offset management</p></div>
+            </div>
+            <div class="cn-field">
+              <label for="kafka-sasl">SASL Mechanism</label>
+              <select class="cn-select" id="kafka-sasl">
+                <option value="none">None</option>
+                <option value="plain">PLAIN</option>
+                <option value="scram-256">SCRAM-SHA-256</option>
+                <option value="scram-512">SCRAM-SHA-512</option>
+              </select>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>Auto Commit Offsets</span><em>Commit after successful processing</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="kafka-autocommit" checked /><span class="pill-track"></span></label>
+            </div>
+            <div class="cn-toggle-row">
+              <div class="cn-toggle-info"><span>TLS / SSL</span><em>Encrypt broker communication</em></div>
+              <label class="toggle-pill"><input type="checkbox" id="kafka-tls" /><span class="pill-track"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="cn-footer">
+          <button class="cn-btn-ghost"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <div class="cn-footer-right">
+            <button class="cn-btn-test btn-test"><i data-lucide="plug-zap" class="icon-svg sm"></i> Test Connection</button>
+            <button class="cn-btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Connector</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>

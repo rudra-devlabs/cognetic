@@ -1,4 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
+import { open as shellOpen } from '@tauri-apps/plugin-shell';
+import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import agentsHtml from './Agents.html?raw';
 import './Agents.css';
 import './pages.css';
@@ -16,7 +18,6 @@ export function renderAgents(container) {
     if (backBtn) backBtn.addEventListener('click', goHome);
     if (rightHomeBtn) rightHomeBtn.addEventListener('click', goHome);
 
-    // --- Top Nav Tab Routing ---
     const navIntegrationsTab = container.querySelector('#nav-integrations-tab');
     const navAgentsTab = container.querySelector('#nav-agents-tab');
     const agentsView = container.querySelector('#agents-view');
@@ -27,10 +28,31 @@ export function renderAgents(container) {
         navAgentsTab.classList.toggle('active', viewName === 'agents');
         integrationsView.style.display = viewName === 'integrations' ? 'flex' : 'none';
         agentsView.style.display = viewName === 'agents' ? 'flex' : 'none';
+        if (viewName === 'integrations' && window.lucide) {
+            window.lucide.createIcons({ root: integrationsView });
+        }
     };
-
     if (navIntegrationsTab) navIntegrationsTab.addEventListener('click', () => switchMainView('integrations'));
     if (navAgentsTab) navAgentsTab.addEventListener('click', () => switchMainView('agents'));
+
+    // Honor cross-view request to open the Integrations panel
+    if (window.cogneticOpenIntegrations) {
+        switchMainView('integrations');
+        window.cogneticOpenIntegrations = false;
+    }
+
+
+    // --- Route to new views from top nav ---
+    const agNavMap = {
+        'nav-agents-channels-tab': 'channels',
+        'nav-agents-connectors-tab': 'connectors',
+        'nav-agents-browser-tab': 'browser',
+        'nav-agents-settings-tab': 'settings',
+    };
+    Object.entries(agNavMap).forEach(([id, route]) => {
+        const btn = container.querySelector(`#${id}`);
+        if (btn) btn.addEventListener('click', () => window.router.navigate(route));
+    });
 
     // --- Sub-tab routing ---
     const agentsSubTabs = container.querySelectorAll('#agents-view .sub-tab');
@@ -51,6 +73,7 @@ export function renderAgents(container) {
             if (name === 'skills') renderSkillsPage(container);
             if (name === 'subagents') renderSubAgentsPage(container);
             if (name === 'memory') renderMemoryPage(container);
+            if (name === 'config') setupConfigPage(container);
         });
     });
 
@@ -74,85 +97,87 @@ export function renderAgents(container) {
 
 
     // Form elements
-    const providerTitleContainer = container.querySelector('.provider-title');
-    const headerTitle = container.querySelector('.provider-title h3');
-    const headerDesc = container.querySelector('.header-text p');
+    const providerNameEl = container.querySelector('#provider-name');
+    const providerDescEl = container.querySelector('#provider-description');
+    const providerLogoWrapper = container.querySelector('#provider-logo-wrapper');
+    const breadcrumbProvider = container.querySelector('#breadcrumb-provider');
+    const statusIndicator = container.querySelector('#config-status-indicator');
     const apiKeyInput = container.querySelector('#apiKey');
     const apiHostInput = container.querySelector('#apiHost');
     const modelsContainer = container.querySelector('#models-container');
-    
+    const providerCountEl = container.querySelector('#provider-count');
+
     // Dynamically render sidebar list
     const modelsListEl = container.querySelector('#sidebar-models-list');
     if (modelsListEl) {
         let listHtml = '';
-        for (const [providerName, pConfig] of Object.entries(PROVIDERS_CONFIG)) {
+        const providers = Object.entries(PROVIDERS_CONFIG);
+        if (providerCountEl) providerCountEl.textContent = providers.length;
+        
+        for (const [providerName, pConfig] of providers) {
             const listIconHtml = pConfig.icon ? `<img src="${pConfig.icon}" class="company-icon" alt="${providerName}" />` : '';
-            listHtml += `<button class="model-item ${providerName === 'OpenAI Compatible' ? 'active' : ''}">${listIconHtml} ${providerName}</button>`;
+            listHtml += `<button class="model-item ${providerName === 'OpenAI Compatible' ? 'active' : ''}">${listIconHtml} <span>${providerName}</span></button>`;
         }
         modelsListEl.innerHTML = listHtml;
     }
-    const btnSave = container.querySelector('.btn-primary');
-    const btnReset = container.querySelector('.btn-secondary');
-    const statusBadge = container.querySelector('.status-badge');
+    const btnSave = container.querySelector('#save-config-btn');
+    const btnReset = container.querySelector('#reset-config-btn');
 
     const updateStatusBadge = (config) => {
-        if (!statusBadge) return;
+        if (!statusIndicator) return;
+
+        const statusText = statusIndicator.querySelector('.status-text');
         
-        if (config && config.apiKey && config.apiKey.trim() !== '') {
-            statusBadge.classList.remove('error');
-            statusBadge.classList.add('success');
-            statusBadge.innerHTML = '<i data-lucide="check-circle-2" class="icon-svg sm"></i> Configured';
+        // Find if this is a CDP bridge
+        const modelName = document.querySelector('.provider-header .title')?.textContent.trim();
+        const pConfig = modelName ? PROVIDERS_CONFIG[modelName] : {};
+
+        if ((config && config.apiKey && config.apiKey.trim() !== '') || pConfig?.isCdpBridge) {
+            statusIndicator.classList.add('configured');
+            if (statusText) statusText.textContent = 'Configured';
         } else {
-            statusBadge.classList.add('error');
-            statusBadge.classList.remove('success');
-            statusBadge.innerHTML = '<i data-lucide="alert-circle" class="icon-svg sm"></i> Not Configured';
+            statusIndicator.classList.remove('configured');
+            if (statusText) statusText.textContent = 'Not Configured';
         }
-        if (window.lucide) window.lucide.createIcons({ root: statusBadge });
     };
 
 
 
     const loadProviderToForm = (activeItem) => {
-        const modelName = activeItem.textContent.trim();
+        const modelName = activeItem.querySelector('span')?.textContent.trim() || activeItem.textContent.trim();
         
         const pConfig = PROVIDERS_CONFIG[modelName] || {};
-        const iconHtml = pConfig.icon ? `<img src="${pConfig.icon}" class="company-icon" alt="${modelName}" />` : '';
+        const iconHtml = pConfig.icon ? `<img src="${pConfig.icon}" class="provider-logo" alt="${modelName}" />` : '';
 
-        if(providerTitleContainer) {
-            providerTitleContainer.innerHTML = `${iconHtml} <h3>${modelName}</h3>`;
-            if (window.lucide) {
-                window.lucide.createIcons({ root: providerTitleContainer });
-            }
-        }
+        // Update provider name and description
+        if (providerNameEl) providerNameEl.textContent = modelName;
+        if (providerDescEl) providerDescEl.textContent = pConfig.description || `Connect to ${modelName} API.`;
+        if (breadcrumbProvider) breadcrumbProvider.textContent = modelName;
         
-        if(headerDesc) {
-            headerDesc.textContent = `Connect to custom endpoints matching the ${modelName} specification.`;
+        // Update provider logo
+        if (providerLogoWrapper && pConfig.icon) {
+            providerLogoWrapper.innerHTML = iconHtml;
         }
 
-        const helpLink = container.querySelector('.help-link');
-        if (helpLink) {
-            if (modelName === 'Ollama' || modelName === 'LM Studio') {
-                helpLink.style.display = 'none';
+        // Update documentation link
+        const docsLink = container.querySelector('#provider-docs-link');
+        if (docsLink) {
+            if (modelName === 'Ollama' || modelName === 'LM Studio' || !pConfig.link) {
+                docsLink.style.display = 'none';
             } else {
-                helpLink.style.display = 'flex';
-                helpLink.href = pConfig.link || '#';
+                docsLink.style.display = 'flex';
+                docsLink.href = pConfig.link || '#';
                 
                 // Remove any existing event listeners
-                const newHelpLink = helpLink.cloneNode(true);
-                helpLink.parentNode.replaceChild(newHelpLink, helpLink);
+                const newDocsLink = docsLink.cloneNode(true);
+                docsLink.parentNode.replaceChild(newDocsLink, docsLink);
                 
                 // Add click handler to open in external browser
-                newHelpLink.addEventListener('click', async (e) => {
+                newDocsLink.addEventListener('click', async (e) => {
                     e.preventDefault();
                     const url = pConfig.link || '#';
                     if (url !== '#') {
-                        try {
-                            await window.tauriApi.openExternal(url);
-                        } catch (err) {
-                            console.error('Failed to open external link:', err);
-                            // Fallback to opening in current window if external opening fails
-                            window.location.href = url;
-                        }
+                        shellOpen(url).catch(err => console.error('Failed to open link:', err));
                     }
                 });
             }
@@ -161,14 +186,24 @@ export function renderAgents(container) {
         const config = stateManager.getProviderConfig(modelName);
         if (apiKeyInput) apiKeyInput.value = config.apiKey || '';
         
+        const authSection = container.querySelector('#auth-section');
+        const connSection = container.querySelector('#connection-section');
+        if (pConfig.isCdpBridge) {
+            if (authSection) authSection.style.display = 'none';
+            if (connSection) connSection.style.display = 'none';
+        } else {
+            if (authSection) authSection.style.display = 'block';
+            if (connSection) connSection.style.display = 'block';
+        }
+
         if (apiHostInput) {
             apiHostInput.value = config.apiHost || pConfig.baseUrl || '';
             apiHostInput.readOnly = (modelName !== 'OpenAI Compatible');
             
             // Hide override button for OpenAI compatible since it's already editable
-            const overrideBtn = container.querySelector('#overrideHostBtn');
+            const overrideBtn = container.querySelector('#override-host-btn');
             if (overrideBtn) {
-                overrideBtn.style.display = (modelName === 'OpenAI Compatible') ? 'none' : 'inline-flex';
+                overrideBtn.style.display = (modelName === 'OpenAI Compatible') ? 'none' : 'flex';
             }
         }
         
@@ -199,11 +234,11 @@ export function renderAgents(container) {
                     const addRow = document.createElement('div');
                     addRow.className = 'add-model-row';
                     addRow.innerHTML = `
-                        <div class="input-wrapper premium-input">
-                            <input type="text" id="customModelId" placeholder="Model ID (e.g. gpt-4)" />
+                        <div class="field-input-wrapper">
+                            <input type="text" class="field-input" id="customModelId" placeholder="Model ID (e.g. gpt-4)" />
                         </div>
-                        <div class="input-wrapper premium-input">
-                            <input type="text" id="customModelName" placeholder="Name (Optional)" />
+                        <div class="field-input-wrapper">
+                            <input type="text" class="field-input" id="customModelName" placeholder="Name (Optional)" />
                         </div>
                         <button class="add-model-btn" id="addCustomModelBtn">Add</button>
                     `;
@@ -253,7 +288,14 @@ export function renderAgents(container) {
             }
 
         }
-        
+
+        // Update models count badge
+        const modelsCountBadge = container.querySelector('#models-count-badge');
+        if (modelsCountBadge) {
+            const models = pConfig.models || (modelName === 'OpenAI Compatible' ? config.customModels : []);
+            modelsCountBadge.textContent = `${models.length} model${models.length !== 1 ? 's' : ''}`;
+        }
+
         updateStatusBadge(config);
     };
 
@@ -266,17 +308,44 @@ export function renderAgents(container) {
             // Add to clicked
             const target = e.currentTarget;
             target.classList.add('active');
-            
+
             loadProviderToForm(target);
         });
     });
 
+    // Provider search functionality
+    const searchInput = container.querySelector('#provider-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            modelItems.forEach(item => {
+                const name = item.querySelector('span')?.textContent.toLowerCase() || item.textContent.toLowerCase();
+                item.style.display = name.includes(query) ? 'flex' : 'none';
+            });
+        });
+    }
+
     // Override Button Logic
-    const overrideBtn = container.querySelector('#overrideHostBtn');
+    const overrideBtn = container.querySelector('#override-host-btn');
     if (overrideBtn && apiHostInput) {
         overrideBtn.addEventListener('click', () => {
             apiHostInput.readOnly = false;
             apiHostInput.focus();
+        });
+    }
+
+    // Toggle Visibility Button Logic
+    const toggleVisBtn = container.querySelector('#toggle-visibility-btn');
+    if (toggleVisBtn && apiKeyInput) {
+        toggleVisBtn.addEventListener('click', () => {
+            if (apiKeyInput.type === 'password') {
+                apiKeyInput.type = 'text';
+                toggleVisBtn.innerHTML = '<i data-lucide="eye-off" class="icon-svg"></i>';
+            } else {
+                apiKeyInput.type = 'password';
+                toggleVisBtn.innerHTML = '<i data-lucide="eye" class="icon-svg"></i>';
+            }
+            if (window.lucide) window.lucide.createIcons({ root: toggleVisBtn });
         });
     }
 
@@ -305,7 +374,7 @@ export function renderAgents(container) {
                     'anthropic-version': '2023-06-01',
                     'content-type': 'application/json'
                 };
-            } else if (modelName === 'Google AI Studio') {
+            } else if (modelName === 'DeepSeek (CDP)') {
                 // If they don't have v1beta in the path, add it
                 if (!base.endsWith('/v1beta')) {
                     endpoint = base + `/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
@@ -358,7 +427,7 @@ export function renderAgents(container) {
                 };
                 
                 // Remove existing error card if any
-                const existingError = btnSave.parentElement.parentElement.querySelector('.api-error-card');
+                const existingError = btnSave.closest('.config-content').querySelector('.api-error-card');
                 if (existingError) existingError.remove();
 
                 // Show loading state
@@ -401,7 +470,7 @@ export function renderAgents(container) {
                     errorCard.style.width = '100%';
                     errorCard.innerHTML = `<div class="modern-error-header"><i data-lucide="shield-alert" class="icon-svg"></i><span>Validation Failed</span></div><div class="modern-error-body"><div style="font-weight: 500;">${validationResult.message}</div>${validationResult.details ? `<details class="modern-error-details" style="margin-top: 12px;"><summary>View technical details</summary><pre>${validationResult.details}</pre></details>` : ''}<div style="margin-top: 16px;"><button id="force-save-btn" class="btn-secondary" style="background: rgba(255,255,255,0.06); padding: 6px 14px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: inherit; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; font-weight: 500;"><i data-lucide="check-circle" class="icon-svg sm"></i> Force Save Anyway</button></div></div>`;
                     
-                    btnSave.parentElement.parentElement.appendChild(errorCard);
+                    btnSave.closest('.config-content').appendChild(errorCard);
                     if (window.lucide) window.lucide.createIcons({ root: errorCard });
 
                     const forceSaveBtn = errorCard.querySelector('#force-save-btn');
@@ -431,28 +500,13 @@ export function renderAgents(container) {
             if (activeItem) {
                 const modelName = activeItem.textContent.trim();
                 apiKeyInput.value = '';
-                if (apiHostInput) apiHostInput.value = PROVIDER_BASE_URLS[modelName] || '';
+                if (apiHostInput) apiHostInput.value = PROVIDERS_CONFIG[modelName]?.baseUrl || '';
                 stateManager.updateProviderConfig(modelName, { apiKey: '', apiHost: apiHostInput ? apiHostInput.value : '', customModels: [] });
                 
                 // Reload UI
                 loadProviderToForm(activeItem);
                 updateStatusBadge({});
             }
-        });
-    }
-
-    // Toggle password visibility
-    const toggleVisBtn = container.querySelector('.toggle-visibility');
-    if (toggleVisBtn && apiKeyInput) {
-        toggleVisBtn.addEventListener('click', () => {
-            if (apiKeyInput.type === 'password') {
-                apiKeyInput.type = 'text';
-                toggleVisBtn.innerHTML = '<i data-lucide="eye-off" class="icon-svg sm"></i>';
-            } else {
-                apiKeyInput.type = 'password';
-                toggleVisBtn.innerHTML = '<i data-lucide="eye" class="icon-svg sm"></i>';
-            }
-            if (window.lucide) window.lucide.createIcons({ root: toggleVisBtn });
         });
     }
 
@@ -565,7 +619,7 @@ export function renderAgents(container) {
     };
 
     loadIntegrationsState();
-
+    
     const saveWsBtn = container.querySelector('#save-integrations-websearch-btn');
     if (saveWsBtn) {
         saveWsBtn.addEventListener('click', () => {
@@ -591,6 +645,24 @@ export function renderAgents(container) {
                 saveWfBtn.innerHTML = originalHtml;
                 if (window.lucide) window.lucide.createIcons({ root: saveWfBtn });
             }, 1500);
+        });
+    }
+
+    // --- Integrations visibility toggles ---
+    const integrationsViewEl = container.querySelector('#integrations-view');
+    if (integrationsViewEl) {
+        integrationsViewEl.querySelectorAll('.toggle-visibility').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const wrapper = btn.closest('.modern-input-wrapper');
+                const input = wrapper ? wrapper.querySelector('input') : null;
+                if (!input) return;
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                btn.innerHTML = isPassword
+                    ? '<i data-lucide="eye-off" class="icon-svg sm"></i>'
+                    : '<i data-lucide="eye" class="icon-svg sm"></i>';
+                if (window.lucide) window.lucide.createIcons({ root: btn });
+            });
         });
     }
 }
@@ -707,6 +779,20 @@ function renderSubAgentsPage(container) {
                 </div>
             </div>
 
+            <!-- Search Summarization Config -->
+            <div style="margin-bottom: 24px; padding: 16px; background: var(--bg-hover); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <h3 style="margin-top: 0; font-size: var(--font-size-lg); color: var(--text-primary); margin-bottom: 8px;">Search Summarization Model</h3>
+                <p style="color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: 16px;">Select a model to summarize large web search results, saving tokens and improving focus.</p>
+                
+                <div class="model-dropdown-wrapper" id="search-model-dropdown-wrapper" style="position: relative;">
+                    <button class="model-select-btn" id="search-model-btn" style="background: var(--bg-panel); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 12px; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <i data-lucide="file-text" class="icon-svg sm"></i> 
+                        <span id="active-search-model-text">${stateManager.getState().searchSummarizationModel || 'OpenAI Compatible'}</span> 
+                        <i data-lucide="chevron-down" class="icon-svg sm"></i>
+                    </button>
+                </div>
+            </div>
+
             <div class="agent-cards-grid">
                 ${agents.map(a => `
                     <div class="agent-card">
@@ -767,8 +853,9 @@ function renderSubAgentsPage(container) {
         let models = [];
         for (const [providerName, config] of Object.entries(configuredProviders)) {
             const isLocal = ['Ollama', 'LM Studio'].includes(providerName);
+            const isCdp = PROVIDERS_CONFIG[providerName]?.isCdpBridge;
             const hasKey = config.apiKey && config.apiKey.trim() !== '';
-            if (hasKey || isLocal) {
+            if (hasKey || isLocal || isCdp) {
                 if (providerName === 'OpenAI Compatible') {
                     if (config.customModels && config.customModels.length > 0) {
                         config.customModels.forEach(cm => models.push({ provider: providerName, id: cm.id, name: cm.name || cm.id }));
@@ -851,6 +938,123 @@ function renderSubAgentsPage(container) {
                 if (!wasActive) pItem.classList.add('active');
             });
             
+            pItem.addEventListener('mouseenter', () => {
+                dropdown.querySelectorAll('.model-submenu.show').forEach(sm => sm.classList.remove('show'));
+                const submenu = pItem.querySelector('.model-submenu');
+                if (submenu) submenu.classList.add('show');
+            });
+            pItem.addEventListener('mouseleave', (e) => {
+                const submenu = pItem.querySelector('.model-submenu');
+                if (submenu && !submenu.contains(e.relatedTarget)) {
+                    submenu.classList.remove('show');
+                }
+            });
+        });
+        
+        dropdown.querySelectorAll('.model-search-input').forEach(input => {
+            input.addEventListener('click', (e) => e.stopPropagation());
+            input.addEventListener('keyup', (e) => {
+                const term = e.target.value.toLowerCase();
+                const listItems = e.target.closest('.model-submenu').querySelectorAll('.selectable-model-item');
+                listItems.forEach(item => {
+                    item.style.display = item.getAttribute('data-name').toLowerCase().includes(term) ? 'flex' : 'none';
+                });
+            });
+        });
+    }
+
+    // Search Summarization Dropdown Logic
+    const searchBtn = el.querySelector('#search-model-btn');
+    const searchWrapper = el.querySelector('#search-model-dropdown-wrapper');
+    const searchText = el.querySelector('#active-search-model-text');
+
+    if (searchBtn && searchWrapper) {
+        // Build dropdown HTML
+        const configuredProviders = stateManager.getState().providers || {};
+        let models = [];
+        for (const [providerName, config] of Object.entries(configuredProviders)) {
+            const isLocal = ['Ollama', 'LM Studio'].includes(providerName);
+            const isCdp = PROVIDERS_CONFIG[providerName]?.isCdpBridge;
+            const hasKey = config.apiKey && config.apiKey.trim() !== '';
+            if (hasKey || isLocal || isCdp) {
+                if (providerName === 'OpenAI Compatible') {
+                    if (config.customModels && config.customModels.length > 0) {
+                        config.customModels.forEach(cm => models.push({ provider: providerName, id: cm.id, name: cm.name || cm.id }));
+                    }
+                } else {
+                    const stdModels = (PROVIDERS_CONFIG[providerName] || {}).models || [];
+                    stdModels.forEach(m => models.push({ provider: providerName, id: m, name: m }));
+                }
+            }
+        }
+
+        let dropdownHtml = `<div class="model-dropdown-menu" id="search-model-dropdown-menu" style="top: 100%; left: 0; min-width: 240px; margin-top: 8px;">`;
+        if (models.length === 0) {
+            dropdownHtml += `<div class="model-item no-models" style="justify-content: center; color: var(--text-muted); cursor: default; padding: 12px;">No models configured</div>`;
+        } else {
+            const grouped = {};
+            models.forEach(m => {
+                if (!grouped[m.provider]) grouped[m.provider] = [];
+                grouped[m.provider].push(m);
+            });
+            for (const [provider, provModels] of Object.entries(grouped)) {
+                const providerConfig = PROVIDERS_CONFIG[provider] || {};
+                const iconHtml = providerConfig.icon ? `<img src="${providerConfig.icon}" class="company-icon" />` : `<i data-lucide="cpu" class="icon-svg sm"></i>`;
+                dropdownHtml += `
+                <div class="model-item provider-item" data-provider-group="${provider}">
+                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 400;">
+                        ${iconHtml}
+                        <span>${provider}</span>
+                    </div>
+                    <i data-lucide="chevron-right" class="icon-svg sm"></i>
+                    <div class="model-submenu" data-provider-menu="${provider}">
+                        <div class="model-search-container"><input type="text" class="model-search-input" placeholder="Search ${provider} models..." /></div>
+                        <div class="model-list-scrollable">
+                `;
+                provModels.forEach(m => {
+                    dropdownHtml += `<div class="model-item selectable-model-item" data-provider="${m.provider}" data-model="${m.id}" data-name="${m.name}">${m.name}</div>`;
+                });
+                dropdownHtml += `</div></div></div>`;
+            }
+        }
+        dropdownHtml += `</div>`;
+        searchWrapper.insertAdjacentHTML('beforeend', dropdownHtml);
+        const dropdown = searchWrapper.querySelector('#search-model-dropdown-menu');
+
+        searchBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!searchWrapper.contains(e.target)) {
+                dropdown.classList.remove('show');
+                dropdown.querySelectorAll('.provider-item').forEach(i => i.classList.remove('active'));
+                dropdown.querySelectorAll('.model-submenu.show').forEach(sm => sm.classList.remove('show'));
+            }
+        });
+
+        dropdown.querySelectorAll('.selectable-model-item').forEach(item => {
+            item.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                const modelName = item.getAttribute('data-name');
+                if (modelName) {
+                    stateManager.updateState({ searchSummarizationModel: modelName });
+                    searchText.textContent = modelName;
+                }
+                dropdown.classList.remove('show');
+                dropdown.querySelectorAll('.model-submenu.show').forEach(sm => sm.classList.remove('show'));
+                dropdown.querySelectorAll('.provider-item').forEach(i => i.classList.remove('active'));
+            });
+        });
+
+        dropdown.querySelectorAll('.provider-item').forEach(pItem => {
+            pItem.addEventListener('click', (e) => {
+                if (e.target.closest('.model-submenu')) return;
+                const wasActive = pItem.classList.contains('active');
+                dropdown.querySelectorAll('.provider-item').forEach(i => i.classList.remove('active'));
+                if (!wasActive) pItem.classList.add('active');
+            });
             pItem.addEventListener('mouseenter', () => {
                 dropdown.querySelectorAll('.model-submenu.show').forEach(sm => sm.classList.remove('show'));
                 const submenu = pItem.querySelector('.model-submenu');
@@ -1000,3 +1204,58 @@ function renderMemoryPage(container) {
     });
 }
 
+
+function setupConfigPage(container) {
+    const iterInput = container.querySelector('#config-max-iterations');
+    if (!iterInput) return;
+    
+    // Load initial
+    const state = stateManager.getState();
+    if (state.agentSettings && state.agentSettings.maxIterations) {
+        iterInput.value = state.agentSettings.maxIterations;
+    }
+    
+    // Save on change
+    iterInput.addEventListener('change', () => {
+        let val = parseInt(iterInput.value, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > 100) val = 100;
+        iterInput.value = val;
+        
+        stateManager.state.agentSettings = stateManager.state.agentSettings || {};
+        stateManager.state.agentSettings.maxIterations = val;
+        stateManager.saveState();
+    });
+
+    // Image Compression Settings
+    const imgSmallInput = container.querySelector('#config-img-small-threshold');
+    const imgMidInput = container.querySelector('#config-img-mid-cap');
+    const imgLargeInput = container.querySelector('#config-img-large-threshold');
+    const imgMaxInput = container.querySelector('#config-img-max-cap');
+
+    if (imgSmallInput && imgMidInput && imgLargeInput && imgMaxInput) {
+        if (state.agentSettings && state.agentSettings.imageCompression) {
+            const comp = state.agentSettings.imageCompression;
+            imgSmallInput.value = comp.smallThreshold || 500;
+            imgMidInput.value = comp.midCap || 499;
+            imgLargeInput.value = comp.largeThreshold || 1000;
+            imgMaxInput.value = comp.maxCap || 650;
+        }
+
+        const updateImageCompression = () => {
+            stateManager.state.agentSettings = stateManager.state.agentSettings || {};
+            stateManager.state.agentSettings.imageCompression = {
+                smallThreshold: parseInt(imgSmallInput.value, 10) || 500,
+                midCap: parseInt(imgMidInput.value, 10) || 499,
+                largeThreshold: parseInt(imgLargeInput.value, 10) || 1000,
+                maxCap: parseInt(imgMaxInput.value, 10) || 650
+            };
+            stateManager.saveState();
+        };
+
+        imgSmallInput.addEventListener('change', updateImageCompression);
+        imgMidInput.addEventListener('change', updateImageCompression);
+        imgLargeInput.addEventListener('change', updateImageCompression);
+        imgMaxInput.addEventListener('change', updateImageCompression);
+    }
+}

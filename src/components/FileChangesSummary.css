@@ -1,11 +1,10 @@
 .fcs-box {
-  background: #17181a;
-  border-radius: 10px;
-  border: 1px solid #232427;
+  background: var(--bg-panel);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
   margin: 20px auto 0 auto;
-  padding: 0 0 0 0;
+  padding: 0;
   max-width: 600px;
-  box-shadow: 0 2px 6px #0001;
   font-family: inherit;
 }
 .fcs-header {
@@ -16,19 +15,19 @@
   font-size: 17px;
 }
 .fcs-text {
-  color: #b8bfc8;
+  color: var(--text-primary);
   flex: none;
 }
 .fcs-add {
-  color: #3dc16b;
+  color: var(--text-success);
   margin-left: 8px;
 }
 .fcs-del {
-  color: #db4b4b;
+  color: var(--error-color);
   margin-right: 8px;
 }
 .fcs-toggle {
-  color: #878da9;
+  color: var(--text-muted);
   font-size: 30px;
   margin-left: 8px;
   background: none;
@@ -38,12 +37,12 @@
   transition: color 0.15s;
 }
 .fcs-toggle:focus {
-  color: #fff;
+  color: var(--text-primary);
 }
 .fcs-review {
   margin-left: auto;
-  background: #232427;
-  color: #b8bfc8;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
   border: none;
   border-radius: 6px;
   padding: 5px 16px;
@@ -55,8 +54,8 @@
   align-items: center;
 }
 .fcs-details {
-  background: #131316;
-  border-top: 1px solid #232427;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-color);
   padding: 10px 24px 12px 24px;
 }
 .fcs-file-row {
@@ -69,11 +68,11 @@
 .fcs-file-name {
   margin-left: 4px;
   min-width: 62px;
-  color: #e6e7ea;
+  color: var(--text-primary);
 }
 .fcs-file-path {
   margin-left: 10px;
-  color: #7a8193;
+  color: var(--text-muted);
   font-size: 13px;
   font-style: italic;
 }

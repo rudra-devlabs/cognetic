@@ -1,11 +1,26 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, OnceLock};
+use tauri::Emitter;
+use tokio::sync::watch;
 
 // Global map to track running processes by their executionId
 static RUNNING_PROCESSES: OnceLock<Arc<Mutex<HashMap<String, u32>>>> = OnceLock::new();
 
+// Global map to cancel in-flight HTTP streams by stream_id
+static ACTIVE_STREAMS: OnceLock<Arc<Mutex<HashMap<String, watch::Sender<bool>>>>> = OnceLock::new();
+
 fn get_process_map() -> Arc<Mutex<HashMap<String, u32>>> {
     RUNNING_PROCESSES.get_or_init(|| Arc::new(Mutex::new(HashMap::new()))).clone()
+}
+
+fn get_stream_map() -> Arc<Mutex<HashMap<String, watch::Sender<bool>>>> {
+    ACTIVE_STREAMS.get_or_init(|| Arc::new(Mutex::new(HashMap::new()))).clone()
+}
+
+fn remove_stream(stream_id: &str) {
+    if let Ok(mut guard) = get_stream_map().lock() {
+        guard.remove(stream_id);
+    }
 }
 
 #[tauri::command]
@@ -24,17 +39,23 @@ fn get_current_dir() -> Result<String, String> {
 }
 
 #[tauri::command]
-fn read_file_content(path: &str) -> Result<String, String> {
+fn read_file_content(path: &str, base_paths: Vec<String>) -> Result<String, String> {
+    let path = resolve_and_validate_path(path, base_paths)?;
+
     std::fs::read_to_string(path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn write_file_content(path: &str, content: &str) -> Result<(), String> {
+fn write_file_content(path: &str, content: &str, base_paths: Vec<String>) -> Result<(), String> {
+    let path = resolve_and_validate_path(path, base_paths)?;
+
     std::fs::write(path, content).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn list_directory(path: &str) -> Result<Vec<String>, String> {
+fn list_directory(path: &str, base_paths: Vec<String>) -> Result<Vec<String>, String> {
+    let path = resolve_and_validate_path(path, base_paths)?;
+
     let mut entries = Vec::new();
     match std::fs::read_dir(path) {
         Ok(dir) => {
@@ -58,9 +79,16 @@ fn resolve_and_validate_path(path: &str, base_paths: Vec<String>) -> Result<Stri
     use path_clean::clean;
     let target = Path::new(path);
     
-    // If no base paths are provided, we allow anything (or we could deny, but let's assume JS checked if we should restrict)
     if base_paths.is_empty() {
-        return Ok(target.to_string_lossy().into_owned());
+        return Err("Permission Denied: No active workspace base paths provided.".to_string());
+    }
+
+    fn strip_unc_prefix(s: &str) -> &str {
+        if s.starts_with(r"\\?\") {
+            &s[4..]
+        } else {
+            s
+        }
     }
 
     let mut is_allowed = false;
@@ -76,13 +104,32 @@ fn resolve_and_validate_path(path: &str, base_paths: Vec<String>) -> Result<Stri
             base.join(target)
         };
         
-        let cleaned = clean(joined);
-        let base_str = canon_base.to_string_lossy().to_lowercase();
-        let cleaned_str = cleaned.to_string_lossy().to_lowercase();
+        // Canonicalize target to resolve symlinks and prevent escaping via symlink to outside
+        let canon_target = joined.canonicalize().unwrap_or_else(|_| clean(joined));
+
+        // Use case-sensitive matching by default unless on Windows
+        // Actually, just compare path components directly using Path::starts_with, which is safe
+        // Rust's Path::starts_with handles case-insensitivity on Windows automatically in canonicalized paths?
+        // No, Path::starts_with is strictly string-based components.
+        // We will just do a string comparison on the stripped strings, but WITHOUT to_lowercase on Unix.
         
-        if cleaned_str.starts_with(&base_str) {
+        let base_raw = canon_base.to_string_lossy();
+        let target_raw = canon_target.to_string_lossy();
+        
+        let mut base_str = strip_unc_prefix(&base_raw).to_string();
+        let mut target_str = strip_unc_prefix(&target_raw).to_string();
+        
+        #[cfg(windows)]
+        {
+            base_str = base_str.to_lowercase();
+            target_str = target_str.to_lowercase();
+        }
+
+        if target_str == base_str || target_str.starts_with(&format!("{}\\", base_str)) || target_str.starts_with(&format!("{}/", base_str)) {
             is_allowed = true;
-            resolved_path_str = cleaned.to_string_lossy().into_owned();
+            resolved_path_str = canon_target.to_string_lossy().into_owned();
+            // clean up UNC from the returned path so the UI/tools don't break
+            resolved_path_str = strip_unc_prefix(&resolved_path_str).to_string();
             break;
         }
     }
@@ -95,13 +142,15 @@ fn resolve_and_validate_path(path: &str, base_paths: Vec<String>) -> Result<Stri
 }
 
 #[tauri::command]
-fn delete_path(path: &str, recursive: bool) -> Result<(), String> {
+fn delete_path(path: &str, recursive: bool, base_paths: Vec<String>) -> Result<(), String> {
+    let path = resolve_and_validate_path(path, base_paths)?;
+
     use std::path::Path;
-    let p = Path::new(path);
+    let p = Path::new(&path);
     if !p.exists() {
         return Err("Path does not exist".to_string());
     }
-    if p.is_dir() {
+    if p.symlink_metadata().map(|m| m.is_dir()).unwrap_or(false) {
         if recursive {
             std::fs::remove_dir_all(p).map_err(|e| e.to_string())
         } else {
@@ -134,12 +183,13 @@ fn format_size(bytes: u64) -> String {
 }
 
 #[tauri::command]
-fn get_path_stats(path: &str) -> Result<String, String> {
+fn get_path_stats(path: &str, base_paths: Vec<String>) -> Result<String, String> {
+    let path = resolve_and_validate_path(path, base_paths)?;
     use std::fs;
     use std::path::Path;
     use serde_json::json;
 
-    let p = Path::new(path);
+    let p = Path::new(&path);
     if !p.exists() {
         return Ok(json!({ "exists": false, "path": path }).to_string());
     }
@@ -401,6 +451,168 @@ async fn perform_http_request(
 }
 
 #[tauri::command]
+async fn stream_http_request(
+    app: tauri::AppHandle,
+    stream_id: String,
+    url: String,
+    method: String,
+    headers: Option<std::collections::HashMap<String, String>>,
+    body: Option<String>,
+) -> Result<(), String> {
+    use futures_util::StreamExt;
+
+    let (cancel_tx, mut cancel_rx) = watch::channel(false);
+    {
+        let stream_map = get_stream_map();
+        let mut guard = stream_map
+            .lock()
+            .map_err(|e| format!("Stream map lock error: {}", e))?;
+        guard.insert(stream_id.clone(), cancel_tx);
+    }
+
+    let client = reqwest::Client::new();
+    let method_str = method.to_uppercase();
+
+    let mut req = match method_str.as_str() {
+        "POST" => client.post(&url),
+        "PUT" => client.put(&url),
+        "DELETE" => client.delete(&url),
+        "PATCH" => client.patch(&url),
+        _ => client.get(&url),
+    };
+
+    if let Some(h) = headers {
+        for (k, v) in h {
+            req = req.header(k, v);
+        }
+    }
+
+    if let Some(b) = body {
+        req = req.body(b);
+    }
+
+    let response = match req.send().await {
+        Ok(res) => res,
+        Err(e) => {
+            remove_stream(&stream_id);
+            let _ = app.emit(
+                "llm-done",
+                serde_json::json!({
+                    "stream_id": stream_id,
+                    "status": 0,
+                    "error": e.to_string()
+                }),
+            );
+            return Err(e.to_string());
+        }
+    };
+
+    let status = response.status().as_u16();
+
+    if status < 200 || status >= 300 {
+        let text = response.text().await.unwrap_or_default();
+        remove_stream(&stream_id);
+        let _ = app.emit(
+            "llm-done",
+            serde_json::json!({
+                "stream_id": stream_id,
+                "status": status,
+                "error": text
+            }),
+        );
+        return Ok(());
+    }
+
+    let mut byte_stream = response.bytes_stream();
+    let mut buffer = Vec::new();
+
+    loop {
+        if *cancel_rx.borrow() {
+            break;
+        }
+
+        tokio::select! {
+            _ = cancel_rx.changed() => {
+                if *cancel_rx.borrow() {
+                    break;
+                }
+            }
+            item = byte_stream.next() => {
+                match item {
+                    None => break,
+                    Some(Err(e)) => {
+                        remove_stream(&stream_id);
+                        let _ = app.emit(
+                            "llm-done",
+                            serde_json::json!({
+                                "stream_id": stream_id,
+                                "status": status,
+                                "error": e.to_string()
+                            }),
+                        );
+                        return Err(e.to_string());
+                    }
+                    Some(Ok(bytes)) => {
+                        buffer.extend_from_slice(&bytes);
+                        
+                        while let Some(pos) = buffer.iter().position(|&b| b == b'\n') {
+                            // Extract up to and including the newline
+                            let line_bytes: Vec<u8> = buffer.drain(..=pos).collect();
+                            let line_str = String::from_utf8_lossy(&line_bytes);
+                            let trimmed = line_str.trim();
+                            if trimmed.is_empty() {
+                                continue;
+                            }
+                            let _ = app.emit(
+                                "llm-chunk",
+                                serde_json::json!({
+                                    "stream_id": stream_id,
+                                    "line": trimmed
+                                }),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if !buffer.is_empty() {
+        let final_str = String::from_utf8_lossy(&buffer);
+        let trimmed = final_str.trim();
+        if !trimmed.is_empty() {
+            let _ = app.emit(
+                "llm-chunk",
+                serde_json::json!({
+                    "stream_id": stream_id,
+                    "line": trimmed
+                }),
+            );
+        }
+    }
+
+    remove_stream(&stream_id);
+    let _ = app.emit(
+        "llm-done",
+        serde_json::json!({
+            "stream_id": stream_id,
+            "status": status
+        }),
+    );
+    Ok(())
+}
+
+#[tauri::command]
+fn cancel_stream_request(stream_id: String) -> Result<(), String> {
+    if let Ok(mut guard) = get_stream_map().lock() {
+        if let Some(tx) = guard.remove(&stream_id) {
+            let _ = tx.send(true);
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
 async fn fetch_url_raw(url: String, method: Option<String>, body: Option<String>) -> Result<String, String> {
     let client = reqwest::Client::new();
     let method_str = method.unwrap_or_else(|| "GET".to_string()).to_uppercase();
@@ -471,8 +683,9 @@ fn build_tree(dir: &std::path::Path, prefix: &str) -> String {
 }
 
 #[tauri::command]
-fn get_tree(dirpath: &str) -> Result<String, String> {
-    let path = std::path::Path::new(dirpath);
+fn get_tree(dirpath: &str, base_paths: Vec<String>) -> Result<String, String> {
+    let dirpath_str = resolve_and_validate_path(dirpath, base_paths)?;
+    let path = std::path::Path::new(&dirpath_str);
     if !path.exists() || !path.is_dir() {
         return Err(format!("Directory does not exist: {}", dirpath));
     }
@@ -515,7 +728,8 @@ fn glob_path(pattern: &str, dirpath: Option<&str>) -> Result<Vec<String>, String
 }
 
 #[tauri::command]
-fn grep_search(dirpath: &str, pattern: &str, include: Option<&str>) -> Result<Vec<serde_json::Value>, String> {
+fn grep_search(dirpath: &str, pattern: &str, include: Option<&str>, base_paths: Vec<String>) -> Result<Vec<serde_json::Value>, String> {
+    let dirpath = resolve_and_validate_path(dirpath, base_paths)?;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
     use walkdir::WalkDir;
@@ -541,7 +755,7 @@ fn grep_search(dirpath: &str, pattern: &str, include: Option<&str>) -> Result<Ve
     let mut results = Vec::new();
     let mut match_count = 0;
     
-    let dir_path = std::path::Path::new(dirpath);
+    let dir_path = std::path::Path::new(&dirpath);
     if !dir_path.exists() || !dir_path.is_dir() {
         return Err(format!("Invalid directory: {}", dirpath));
     }
@@ -602,6 +816,36 @@ fn grep_search(dirpath: &str, pattern: &str, include: Option<&str>) -> Result<Ve
     Ok(results)
 }
 
+// ── Unlimited Native-Filesystem State Persistence ─────────────────────────────
+// Replaces the browser's 5-10 MB localStorage cap with disk storage.
+// State is written to: {app_data_dir}/cognetic_state.json
+
+#[tauri::command]
+fn save_app_state(app: tauri::AppHandle, data: String) -> Result<(), String> {
+    use tauri::Manager;
+    let app_dir = app.path().app_data_dir()
+        .map_err(|e| format!("Cannot resolve app data dir: {}", e))?;
+    std::fs::create_dir_all(&app_dir)
+        .map_err(|e| format!("Cannot create app data dir: {}", e))?;
+    let state_path = app_dir.join("cognetic_state.json");
+    std::fs::write(&state_path, data)
+        .map_err(|e| format!("Failed to write state file: {}", e))
+}
+
+#[tauri::command]
+fn load_app_state(app: tauri::AppHandle) -> Result<String, String> {
+    use tauri::Manager;
+    let app_dir = app.path().app_data_dir()
+        .map_err(|e| format!("Cannot resolve app data dir: {}", e))?;
+    let state_path = app_dir.join("cognetic_state.json");
+    if !state_path.exists() {
+        // Return empty JSON object — signals no saved state yet
+        return Ok("{}" .to_string());
+    }
+    std::fs::read_to_string(&state_path)
+        .map_err(|e| format!("Failed to read state file: {}", e))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -623,9 +867,13 @@ pub fn run() {
             kill_command,
             fetch_url_raw,
             perform_http_request,
+            stream_http_request,
+            cancel_stream_request,
             glob_path,
             grep_search,
-            get_tree
+            get_tree,
+            save_app_state,
+            load_app_state
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

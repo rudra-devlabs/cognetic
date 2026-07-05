@@ -1,0 +1,569 @@
+<div class="view-browser">
+  <div class="top-nav">
+    <div class="nav-left">
+      <button class="back-btn" id="browser-back-btn">
+        <i data-lucide="arrow-left" class="icon-svg"></i>
+      </button>
+      <span class="logo-text">Cognetic</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab" id="nav-br-webagents-tab">Web Agents</button>
+      <button class="nav-tab" id="nav-br-integrations-tab">Integrations</button>
+      <button class="nav-tab" id="nav-br-agents-tab">Agents</button>
+      <button class="nav-tab" id="nav-br-channels-tab">Channels</button>
+      <button class="nav-tab" id="nav-br-connectors-tab">Connectors</button>
+      <button class="nav-tab active" id="nav-br-tab">Browser</button>
+      <button class="nav-tab" id="nav-br-settings-tab">General</button>
+    </div>
+    <div class="nav-right">
+      <i data-lucide="help-circle" class="icon-svg"></i>
+      <button id="browser-home-btn" style="background:none;border:none;padding:0;display:flex;align-items:center;cursor:pointer;">
+        <i data-lucide="home" class="icon-svg"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="browser-layout">
+    <!-- Sidebar -->
+    <div class="browser-sidebar">
+      <div class="sidebar-section-label">Automation</div>
+      <button class="br-tab active" data-tab="config"><i data-lucide="settings-2" class="icon-svg sm"></i> Configuration</button>
+      <button class="br-tab" data-tab="sessions"><i data-lucide="layers" class="icon-svg sm"></i> Sessions</button>
+      <button class="br-tab" data-tab="playwright"><i data-lucide="play" class="icon-svg sm"></i> Playwright</button>
+      <div class="sidebar-section-label" style="margin-top:16px;">Scraping</div>
+      <button class="br-tab" data-tab="scraper"><i data-lucide="spider" class="icon-svg sm"></i> Web Scraper</button>
+      <button class="br-tab" data-tab="screenshots"><i data-lucide="camera" class="icon-svg sm"></i> Screenshots</button>
+      <div class="sidebar-section-label" style="margin-top:16px;">Privacy</div>
+      <button class="br-tab" data-tab="proxy"><i data-lucide="shield" class="icon-svg sm"></i> Proxy & Privacy</button>
+    </div>
+
+    <!-- Main -->
+    <div class="browser-main">
+
+      <!-- CONFIGURATION -->
+      <div class="br-panel active-panel" id="br-config">
+        <div class="br-panel-header">
+          <div class="br-header-icon config-icon">
+            <i data-lucide="globe" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="br-title">Browser Automation</h2>
+            <p class="br-subtitle">Configure the headless browser your agent uses to browse the web.</p>
+          </div>
+          <div class="br-status-pill">
+            <i data-lucide="circle-dot" class="icon-svg sm"></i>
+            <span id="browser-engine-label">Chromium</span>
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="cpu" class="icon-svg"></i>
+              <h3>Engine Settings</h3>
+            </div>
+            <div class="form-group">
+              <label>Browser Engine</label>
+              <select class="ch-select" id="browser-engine">
+                <option value="chromium">Chromium (recommended)</option>
+                <option value="firefox">Firefox</option>
+                <option value="webkit">WebKit (Safari)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Execution Mode</label>
+              <select class="ch-select" id="browser-mode">
+                <option value="headless">Headless (no UI)</option>
+                <option value="headed">Headed (visible window)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Viewport</label>
+              <div class="form-row">
+                <div class="input-wrapper premium-input flex-1">
+                  <input type="number" placeholder="1280" id="browser-width" style="padding-left:14px;" />
+                </div>
+                <span style="color:var(--text-muted);display:flex;align-items:center;font-size:18px;">×</span>
+                <div class="input-wrapper premium-input flex-1">
+                  <input type="number" placeholder="720" id="browser-height" style="padding-left:14px;" />
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>User Agent</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="monitor" class="icon-svg input-icon"></i>
+                <input type="text" placeholder="Default (auto-detect)" id="browser-ua" />
+              </div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="sliders-horizontal" class="icon-svg"></i>
+              <h3>Behavior</h3>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">JavaScript Enabled</div>
+                <div class="toggle-desc">Execute JavaScript on pages</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="br-js"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Images</div>
+                <div class="toggle-desc">Load images (disable for faster scraping)</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="br-images"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Block Ads</div>
+                <div class="toggle-desc">Filter ad and tracking requests</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="br-adblock"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Accept Cookies</div>
+                <div class="toggle-desc">Auto-accept cookie banners</div>
+              </div>
+              <div class="toggle-switch" data-toggle="br-cookies"></div>
+            </div>
+            <div class="form-group" style="margin-top:4px;">
+              <label>Page Timeout (ms)</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="timer" class="icon-svg input-icon"></i>
+                <input type="number" placeholder="30000" id="browser-timeout" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-test" id="browser-test-btn"><i data-lucide="play" class="icon-svg sm"></i> Launch Test</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Settings</button>
+        </div>
+      </div>
+
+      <!-- SESSIONS -->
+      <div class="br-panel" id="br-sessions">
+        <div class="br-panel-header">
+          <div class="br-header-icon sessions-icon">
+            <i data-lucide="layers" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="br-title">Browser Sessions</h2>
+            <p class="br-subtitle">Manage persistent browser sessions with stored cookies and state.</p>
+          </div>
+        </div>
+
+        <div class="sessions-list">
+          <div class="session-card active-session">
+            <div class="session-icon">
+              <i data-lucide="globe" class="icon-svg"></i>
+            </div>
+            <div class="session-info">
+              <div class="session-name">Default Session</div>
+              <div class="session-meta">Last active: 2 hours ago · 12 cookies stored</div>
+            </div>
+            <div class="session-status live">
+              <span class="dot"></span> Live
+            </div>
+            <div class="session-actions">
+              <button class="icon-action-btn" title="View cookies"><i data-lucide="cookie" class="icon-svg sm"></i></button>
+              <button class="icon-action-btn" title="Clear session"><i data-lucide="trash-2" class="icon-svg sm"></i></button>
+            </div>
+          </div>
+
+          <div class="session-card">
+            <div class="session-icon">
+              <i data-lucide="globe" class="icon-svg"></i>
+            </div>
+            <div class="session-info">
+              <div class="session-name">Research Session</div>
+              <div class="session-meta">Last active: 1 day ago · 8 cookies stored</div>
+            </div>
+            <div class="session-status idle">
+              Idle
+            </div>
+            <div class="session-actions">
+              <button class="icon-action-btn" title="Resume"><i data-lucide="play" class="icon-svg sm"></i></button>
+              <button class="icon-action-btn" title="Clear session"><i data-lucide="trash-2" class="icon-svg sm"></i></button>
+            </div>
+          </div>
+
+          <button class="new-session-btn">
+            <i data-lucide="plus" class="icon-svg sm"></i>
+            New Session
+          </button>
+        </div>
+
+        <div class="ch-card" style="max-width:480px;">
+          <div class="ch-card-header">
+            <i data-lucide="settings" class="icon-svg"></i>
+            <h3>Session Options</h3>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Persist Sessions</div>
+              <div class="toggle-desc">Save session state to disk</div>
+            </div>
+            <div class="toggle-switch active" data-toggle="sess-persist"></div>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Share Cookies</div>
+              <div class="toggle-desc">Share cookies between sessions</div>
+            </div>
+            <div class="toggle-switch" data-toggle="sess-share"></div>
+          </div>
+          <div class="form-group" style="margin-top:4px;">
+            <label>Session Expiry (hours)</label>
+            <div class="input-wrapper premium-input">
+              <i data-lucide="clock" class="icon-svg input-icon"></i>
+              <input type="number" placeholder="24" id="sess-expiry" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLAYWRIGHT -->
+      <div class="br-panel" id="br-playwright">
+        <div class="br-panel-header">
+          <div class="br-header-icon play-icon">
+            <i data-lucide="play" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="br-title">Playwright Automation</h2>
+            <p class="br-subtitle">Advanced scripted browser automation with action recording.</p>
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="code-2" class="icon-svg"></i>
+              <h3>Script Runner</h3>
+            </div>
+            <div class="form-group">
+              <label>Startup Script</label>
+              <textarea class="cn-textarea" id="pw-startup" style="min-height:100px;" placeholder="// Playwright script to run on browser launch&#10;// e.g. await page.goto('https://example.com');"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Teardown Script</label>
+              <textarea class="cn-textarea" id="pw-teardown" placeholder="// Runs after each agent session ends"></textarea>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="settings-2" class="icon-svg"></i>
+              <h3>Automation Settings</h3>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Record Actions</div>
+                <div class="toggle-desc">Save a trace of all browser actions</div>
+              </div>
+              <div class="toggle-switch" data-toggle="pw-record"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Auto-scroll Pages</div>
+                <div class="toggle-desc">Scroll to load lazy content</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="pw-scroll"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Wait for Network Idle</div>
+                <div class="toggle-desc">Wait until no pending requests</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="pw-network"></div>
+            </div>
+            <div class="form-group" style="margin-top:4px;">
+              <label>Default Wait Time (ms)</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="timer" class="icon-svg input-icon"></i>
+                <input type="number" placeholder="2000" id="pw-wait" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Settings</button>
+        </div>
+      </div>
+
+      <!-- WEB SCRAPER -->
+      <div class="br-panel" id="br-scraper">
+        <div class="br-panel-header">
+          <div class="br-header-icon scraper-icon">
+            <i data-lucide="spider" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="br-title">Web Scraper</h2>
+            <p class="br-subtitle">Configure how the agent extracts structured data from web pages.</p>
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="settings-2" class="icon-svg"></i>
+              <h3>Extraction</h3>
+            </div>
+            <div class="form-group">
+              <label>Content Extractor</label>
+              <select class="ch-select" id="scraper-extractor">
+                <option value="readability">Mozilla Readability (article content)</option>
+                <option value="cheerio">Cheerio (full DOM parsing)</option>
+                <option value="custom">Custom CSS Selectors</option>
+                <option value="llm">LLM-guided Extraction</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Custom CSS Selector (optional)</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="code" class="icon-svg input-icon"></i>
+                <input type="text" placeholder="article.main, #content, .post-body" id="scraper-selector" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Output Format</label>
+              <select class="ch-select" id="scraper-format">
+                <option value="markdown">Markdown</option>
+                <option value="html">Raw HTML</option>
+                <option value="text">Plain Text</option>
+                <option value="json">JSON (structured)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="filter" class="icon-svg"></i>
+              <h3>Filters & Limits</h3>
+            </div>
+            <div class="form-group">
+              <label>Max Content Length (chars)</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="align-justify" class="icon-svg input-icon"></i>
+                <input type="number" placeholder="50000" id="scraper-maxlen" />
+              </div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Remove Navigation</div>
+                <div class="toggle-desc">Strip nav, header, footer elements</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="sc-nav"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Remove Ads</div>
+                <div class="toggle-desc">Strip advertisement elements</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="sc-ads"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Extract Links</div>
+                <div class="toggle-desc">Include hyperlinks in output</div>
+              </div>
+              <div class="toggle-switch" data-toggle="sc-links"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Extract Images</div>
+                <div class="toggle-desc">Include image alt text and URLs</div>
+              </div>
+              <div class="toggle-switch" data-toggle="sc-images"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Settings</button>
+        </div>
+      </div>
+
+      <!-- SCREENSHOTS -->
+      <div class="br-panel" id="br-screenshots">
+        <div class="br-panel-header">
+          <div class="br-header-icon screenshot-icon">
+            <i data-lucide="camera" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="br-title">Screenshot Settings</h2>
+            <p class="br-subtitle">Configure how the agent captures and stores page screenshots.</p>
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="image" class="icon-svg"></i>
+              <h3>Capture Settings</h3>
+            </div>
+            <div class="form-group">
+              <label>Image Format</label>
+              <select class="ch-select" id="ss-format">
+                <option value="png">PNG (lossless)</option>
+                <option value="jpeg">JPEG (compressed)</option>
+                <option value="webp">WebP (modern)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Quality (JPEG/WebP only, 0-100)</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="sliders" class="icon-svg input-icon"></i>
+                <input type="number" placeholder="80" min="0" max="100" id="ss-quality" />
+              </div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Full Page</div>
+                <div class="toggle-desc">Capture entire scrollable page</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="ss-fullpage"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Auto Screenshot</div>
+                <div class="toggle-desc">Capture screenshot on each page load</div>
+              </div>
+              <div class="toggle-switch" data-toggle="ss-auto"></div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="folder" class="icon-svg"></i>
+              <h3>Storage</h3>
+            </div>
+            <div class="form-group">
+              <label>Save Directory</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="folder-open" class="icon-svg input-icon"></i>
+                <input type="text" placeholder="./screenshots" id="ss-dir" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>File Naming</label>
+              <select class="ch-select" id="ss-naming">
+                <option value="timestamp">Timestamp (1720000000000.png)</option>
+                <option value="domain">Domain + Timestamp</option>
+                <option value="slug">Page Title Slug</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Max Stored (0 = unlimited)</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="archive" class="icon-svg input-icon"></i>
+                <input type="number" placeholder="100" id="ss-max" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Settings</button>
+        </div>
+      </div>
+
+      <!-- PROXY & PRIVACY -->
+      <div class="br-panel" id="br-proxy">
+        <div class="br-panel-header">
+          <div class="br-header-icon proxy-icon">
+            <i data-lucide="shield" class="icon-svg lg"></i>
+          </div>
+          <div>
+            <h2 class="br-title">Proxy & Privacy</h2>
+            <p class="br-subtitle">Route browser traffic through proxies and control fingerprinting.</p>
+          </div>
+        </div>
+
+        <div class="ch-cards-grid">
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="network" class="icon-svg"></i>
+              <h3>Proxy Configuration</h3>
+            </div>
+            <div class="form-group">
+              <label>Proxy Type</label>
+              <select class="ch-select" id="proxy-type">
+                <option value="none">None (Direct)</option>
+                <option value="http">HTTP</option>
+                <option value="https">HTTPS</option>
+                <option value="socks5">SOCKS5</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Proxy URL</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="globe" class="icon-svg input-icon"></i>
+                <input type="text" placeholder="http://user:pass@proxy:8080" id="proxy-url" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Bypass Domains (comma-separated)</label>
+              <div class="input-wrapper premium-input">
+                <i data-lucide="ban" class="icon-svg input-icon"></i>
+                <input type="text" placeholder="localhost, 127.0.0.1, *.internal" id="proxy-bypass" />
+              </div>
+            </div>
+          </div>
+
+          <div class="ch-card">
+            <div class="ch-card-header">
+              <i data-lucide="fingerprint" class="icon-svg"></i>
+              <h3>Fingerprint & Privacy</h3>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Stealth Mode</div>
+                <div class="toggle-desc">Hide headless detection signals</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="prv-stealth"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Randomize Fingerprint</div>
+                <div class="toggle-desc">Vary canvas, WebGL, audio APIs</div>
+              </div>
+              <div class="toggle-switch" data-toggle="prv-rand"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Block Tracking</div>
+                <div class="toggle-desc">Block telemetry and tracking pixels</div>
+              </div>
+              <div class="toggle-switch active" data-toggle="prv-track"></div>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Clear Cookies on Start</div>
+                <div class="toggle-desc">Start each session fresh</div>
+              </div>
+              <div class="toggle-switch" data-toggle="prv-clear"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ch-footer-actions">
+          <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
+          <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Settings</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

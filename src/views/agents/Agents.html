@@ -9,10 +9,10 @@
      <div class="nav-tabs">
        <button class="nav-tab" id="nav-integrations-tab">Integrations</button>
        <button class="nav-tab active" id="nav-agents-tab">Agents</button>
-       <button class="nav-tab">Channels</button>
-       <button class="nav-tab">Connectors</button>
-       <button class="nav-tab">Browser</button>
-       <button class="nav-tab">Settings</button>
+       <button class="nav-tab" id="nav-agents-channels-tab">Channels</button>
+       <button class="nav-tab" id="nav-agents-connectors-tab">Connectors</button>
+       <button class="nav-tab" id="nav-agents-browser-tab">Browser</button>
+       <button class="nav-tab" id="nav-agents-settings-tab">General</button>
      </div>
      <div class="nav-right">
        <i data-lucide="help-circle" class="icon-svg"></i>
@@ -30,71 +30,159 @@
          <button class="sub-tab" data-tab="skills">Skills</button>
          <button class="sub-tab" data-tab="subagents">Sub Agents</button>
          <button class="sub-tab" data-tab="memory">Memory</button>
+         <button class="sub-tab" data-tab="config">Configuration</button>
       </div>
       
       <!-- Models: secondary list + config panel -->
       <div id="tab-models" class="tab-content active-tab">
-        <div class="models-list" id="sidebar-models-list">
-           <!-- dynamically generated from providers.json -->
-        </div>
-        
-        <div class="config-panel premium-layout">
-          <div class="config-panel-inner">
-            <div class="config-header-main">
-              <h2 class="config-title">Model Configuration</h2>
-              <p class="config-subtitle">Manage connection settings and API keys for this provider.</p>
+        <div class="models-layout">
+          <!-- Provider Sidebar -->
+          <div class="provider-sidebar">
+            <div class="sidebar-header">
+              <div class="sidebar-title">
+                <i data-lucide="layers" class="icon-svg"></i>
+                <span>Providers</span>
+              </div>
+              <div class="provider-count" id="provider-count">0</div>
             </div>
-            
-            <div class="config-card premium-card">
-              <div class="config-header">
-                <div class="header-text">
-                  <div class="provider-title">
-                    <img src="/icons/ai-logos/chatgpt-app-logo.svg" class="company-icon lg" alt="Provider" />
-                    <h3>OpenAI Compatible</h3>
-                  </div>
-                  <p>Connect to custom endpoints matching the OpenAI specification.</p>
-                </div>
-                <div class="status-badge error">
-                  <i data-lucide="alert-circle" class="icon-svg sm"></i> Not Configured
+            <div class="provider-search">
+              <i data-lucide="search" class="icon-svg sm search-icon"></i>
+              <input type="text" placeholder="Search providers..." id="provider-search-input" />
+            </div>
+            <div class="provider-list" id="sidebar-models-list">
+              <!-- dynamically generated from providers.json -->
+            </div>
+          </div>
+          
+          <!-- Configuration Panel -->
+          <div class="config-main">
+            <div class="config-header-section">
+              <div class="config-breadcrumb">
+                <span class="breadcrumb-item">Agents</span>
+                <i data-lucide="chevron-right" class="icon-svg xs"></i>
+                <span class="breadcrumb-item">Models</span>
+                <i data-lucide="chevron-right" class="icon-svg xs"></i>
+                <span class="breadcrumb-item active" id="breadcrumb-provider">OpenAI Compatible</span>
+              </div>
+              <div class="config-meta">
+                <div class="status-indicator" id="config-status-indicator">
+                  <span class="status-dot"></span>
+                  <span class="status-text">Not Configured</span>
                 </div>
               </div>
-              
-              <div class="config-body">
-                <div class="form-group">
-                  <div class="form-label-row">
-                    <label>API Key</label>
-                    <a href="#" class="help-link">Get your key <i data-lucide="external-link" class="icon-svg sm"></i></a>
+            </div>
+
+            <div class="config-content">
+              <!-- Provider Info Card -->
+              <div class="provider-info-card">
+                <div class="provider-identity">
+                  <div class="provider-logo-wrapper" id="provider-logo-wrapper">
+                    <img src="/icons/ai-logos/chatgpt-app-logo.svg" class="provider-logo" alt="Provider" />
                   </div>
-                  <div class="input-wrapper premium-input">
-                    <i data-lucide="key" class="icon-svg input-icon"></i>
-                    <input type="password" placeholder="sk-..." id="apiKey" />
-                    <button class="toggle-visibility"><i data-lucide="eye" class="icon-svg sm"></i></button>
+                  <div class="provider-details">
+                    <h2 class="provider-name" id="provider-name">OpenAI Compatible</h2>
+                    <p class="provider-description" id="provider-description">Connect to custom endpoints matching the OpenAI specification.</p>
                   </div>
-                  <p class="input-help">Your API key is stored locally and never sent to our servers.</p>
                 </div>
-  
-                <div class="form-group" style="margin-top: 8px;">
-                  <label>API Host</label>
-                  <div class="input-wrapper premium-input">
-                    <i data-lucide="globe" class="icon-svg input-icon"></i>
-                    <input type="text" placeholder="https://api.openai.com/v1" id="apiHost" readonly />
-                  </div>
-                  <button class="btn-text-override" id="overrideHostBtn" style="margin-top: 6px; font-size: var(--font-size-xs); color: var(--text-muted); cursor: pointer; background: none; border: none; display: inline-flex; align-items: center; gap: 4px; padding: 4px;">
-                    <i data-lucide="edit-2" class="icon-svg sm"></i> Override Default URL
-                  </button>
+                <div class="provider-actions">
+                  <a href="#" class="external-link-btn" id="provider-docs-link">
+                    <i data-lucide="book-open" class="icon-svg sm"></i>
+                    <span>Documentation</span>
+                  </a>
                 </div>
-  
-                <div class="form-group" style="margin-top: 8px;">
-                  <label>Available Models</label>
-                  <div id="models-container" class="models-container premium-box">
+              </div>
+
+              <!-- Configuration Form -->
+              <div class="config-form">
+                <div class="form-section" id="auth-section">
+                  <div class="section-header">
+                    <div class="section-title">
+                      <i data-lucide="lock" class="icon-svg"></i>
+                      <span>Authentication</span>
+                    </div>
+                    <div class="section-badge">Required</div>
+                  </div>
+                  
+                  <div class="form-field">
+                    <label class="field-label">
+                      <span>API Key</span>
+                      <span class="field-required">*</span>
+                    </label>
+                    <div class="field-input-wrapper">
+                      <div class="input-prefix">
+                        <i data-lucide="key" class="icon-svg"></i>
+                      </div>
+                      <input type="password" class="field-input" id="apiKey" placeholder="Enter your API key" />
+                      <div class="input-suffix">
+                        <button class="icon-btn" id="toggle-visibility-btn" title="Toggle visibility">
+                          <i data-lucide="eye" class="icon-svg"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="field-help">
+                      <i data-lucide="info" class="icon-svg xs"></i>
+                      <span>Your API key is stored locally and encrypted. It's never sent to our servers.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-section" id="connection-section">
+                  <div class="section-header">
+                    <div class="section-title">
+                      <i data-lucide="globe" class="icon-svg"></i>
+                      <span>Connection</span>
+                    </div>
+                  </div>
+                  
+                  <div class="form-field">
+                    <label class="field-label">API Endpoint</label>
+                    <div class="field-input-wrapper">
+                      <div class="input-prefix">
+                        <i data-lucide="link" class="icon-svg"></i>
+                      </div>
+                      <input type="text" class="field-input" id="apiHost" placeholder="https://api.openai.com/v1" readonly />
+                      <div class="input-suffix">
+                        <button class="icon-btn" id="override-host-btn" title="Edit endpoint">
+                          <i data-lucide="edit-2" class="icon-svg"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="field-help">
+                      <i data-lucide="shield" class="icon-svg xs"></i>
+                      <span>Default endpoint for this provider. Click edit to customize.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-section">
+                  <div class="section-header">
+                    <div class="section-title">
+                      <i data-lucide="cpu" class="icon-svg"></i>
+                      <span>Models</span>
+                    </div>
+                    <div class="section-badge" id="models-count-badge">0 models</div>
+                  </div>
+                  
+                  <div class="models-grid" id="models-container">
                     <!-- Injected via JS based on Provider -->
                   </div>
                 </div>
               </div>
-  
-              <div class="form-actions">
-                 <button class="btn-secondary"><i data-lucide="rotate-ccw" class="icon-svg sm"></i> Reset</button>
-                 <button class="btn-primary"><i data-lucide="check" class="icon-svg sm"></i> Save Changes</button>
+
+              <!-- Action Bar -->
+              <div class="config-actions">
+                <div class="actions-left">
+                  <button class="btn-ghost" id="reset-config-btn">
+                    <i data-lucide="rotate-ccw" class="icon-svg"></i>
+                    <span>Reset to Default</span>
+                  </button>
+                </div>
+                <div class="actions-right">
+                  <button class="btn-primary" id="save-config-btn">
+                    <i data-lucide="check" class="icon-svg"></i>
+                    <span>Save Configuration</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -105,147 +193,403 @@
       <div id="tab-skills" class="tab-content"></div>
       <div id="tab-subagents" class="tab-content"></div>
       <div id="tab-memory" class="tab-content"></div>
+      
+      <div id="tab-config" class="tab-content">
+        <div class="page-panel">
+          <div class="page-panel-header">
+            <div>
+              <h2 class="page-title">Agent Configuration</h2>
+              <p class="page-subtitle">Tune your agent's autonomous behavior and safety limits.</p>
+            </div>
+          </div>
+
+          <div class="config-grid">
+            <!-- Behavior Settings -->
+            <div class="config-card">
+              <div class="config-card-header">
+                <div class="config-card-icon">
+                  <i data-lucide="sliders-horizontal" class="icon-svg"></i>
+                </div>
+                <div>
+                  <h3 class="config-card-title">Behavior Settings</h3>
+                  <p class="config-card-desc">Control how your agent behaves during tasks.</p>
+                </div>
+              </div>
+
+              <div class="config-card-body">
+                <div class="config-form-group">
+                  <label class="config-form-label">
+                    <span>Max Agent Iterations</span>
+                    <span class="config-form-required">*</span>
+                  </label>
+                  <div class="modern-input-wrapper">
+                    <div class="modern-input-indicator"></div>
+                    <div class="modern-input-icon">
+                      <i data-lucide="repeat" class="icon-svg"></i>
+                    </div>
+                    <input type="number" id="config-max-iterations" min="1" max="200" value="25" />
+                  </div>
+                  <p class="config-form-help">The maximum number of tool calls the agent can make before being stopped. Prevents runaway token usage.</p>
+                </div>
+
+                <div class="config-form-group">
+                  <label class="config-form-label">
+                    <span>Max Tool Calls Per Step</span>
+                    <span class="config-form-required">*</span>
+                  </label>
+                  <div class="modern-input-wrapper">
+                    <div class="modern-input-indicator"></div>
+                    <div class="modern-input-icon">
+                      <i data-lucide="wrench" class="icon-svg"></i>
+                    </div>
+                    <input type="number" id="config-max-tool-calls" min="1" max="50" value="10" />
+                  </div>
+                  <p class="config-form-help">Maximum tools the agent can invoke in a single reasoning step.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Safety Settings -->
+            <div class="config-card">
+              <div class="config-card-header">
+                <div class="config-card-icon">
+                  <i data-lucide="shield" class="icon-svg"></i>
+                </div>
+                <div>
+                  <h3 class="config-card-title">Safety Settings</h3>
+                  <p class="config-card-desc">Protect your workspace from accidental changes.</p>
+                </div>
+              </div>
+
+              <div class="config-card-body">
+                <div class="config-form-group toggle-group">
+                  <div class="toggle-group-left">
+                    <span class="config-form-label">Confirm File Writes</span>
+                    <p class="config-form-help-small">Ask for confirmation before writing or modifying files on disk.</p>
+                  </div>
+                  <label class="toggle-pill">
+                    <input type="checkbox" id="config-confirm-writes" checked />
+                    <span class="pill-track"></span>
+                  </label>
+                </div>
+
+                <div class="config-form-group toggle-group">
+                  <div class="toggle-group-left">
+                    <span class="config-form-label">Confirm Command Execution</span>
+                    <p class="config-form-help-small">Ask for confirmation before running any terminal commands.</p>
+                  </div>
+                  <label class="toggle-pill">
+                    <input type="checkbox" id="config-confirm-commands" checked />
+                    <span class="pill-track"></span>
+                  </label>
+                </div>
+
+                <div class="config-form-group toggle-group">
+                  <div class="toggle-group-left">
+                    <span class="config-form-label">Auto-Save Changes</span>
+                    <p class="config-form-help-small">Automatically persist agent modifications to disk.</p>
+                  </div>
+                  <label class="toggle-pill">
+                    <input type="checkbox" id="config-auto-save" checked />
+                    <span class="pill-track"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Image Compression Settings -->
+            <div class="config-card">
+              <div class="config-card-header">
+                <div class="config-card-icon">
+                  <i data-lucide="image-down" class="icon-svg"></i>
+                </div>
+                <div>
+                  <h3 class="config-card-title">Image Compression Settings</h3>
+                  <p class="config-card-desc">Optimize payload cost and bandwidth for uploaded images.</p>
+                </div>
+              </div>
+
+              <div class="config-card-body">
+                <div class="config-form-group">
+                  <label class="config-form-label">
+                    <span>Small Image Threshold (px)</span>
+                  </label>
+                  <div class="modern-input-wrapper">
+                    <div class="modern-input-indicator"></div>
+                    <div class="modern-input-icon">
+                      <i data-lucide="minimize-2" class="icon-svg"></i>
+                    </div>
+                    <input type="number" id="config-img-small-threshold" min="100" max="4000" value="500" />
+                  </div>
+                  <p class="config-form-help">Images with dimensions below this value will not be compressed.</p>
+                </div>
+
+                <div class="config-form-group">
+                  <label class="config-form-label">
+                    <span>Mid-size Image Cap (px)</span>
+                  </label>
+                  <div class="modern-input-wrapper">
+                    <div class="modern-input-indicator"></div>
+                    <div class="modern-input-icon">
+                      <i data-lucide="shrink" class="icon-svg"></i>
+                    </div>
+                    <input type="number" id="config-img-mid-cap" min="100" max="4000" value="499" />
+                  </div>
+                  <p class="config-form-help">Target resize dimension for mid-sized images.</p>
+                </div>
+
+                <div class="config-form-group">
+                  <label class="config-form-label">
+                    <span>Large Image Threshold (px)</span>
+                  </label>
+                  <div class="modern-input-wrapper">
+                    <div class="modern-input-indicator"></div>
+                    <div class="modern-input-icon">
+                      <i data-lucide="maximize-2" class="icon-svg"></i>
+                    </div>
+                    <input type="number" id="config-img-large-threshold" min="100" max="4000" value="1000" />
+                  </div>
+                  <p class="config-form-help">Images larger than this will be subjected to the maximum cap.</p>
+                </div>
+
+                <div class="config-form-group">
+                  <label class="config-form-label">
+                    <span>Maximum Image Cap (px)</span>
+                  </label>
+                  <div class="modern-input-wrapper">
+                    <div class="modern-input-indicator"></div>
+                    <div class="modern-input-icon">
+                      <i data-lucide="scissors" class="icon-svg"></i>
+                    </div>
+                    <input type="number" id="config-img-max-cap" min="100" max="4000" value="650" />
+                  </div>
+                  <p class="config-form-help">Hard maximum resize dimension for very large images.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="config-actions-bar">
+            <button class="btn-ghost" id="config-reset-btn">
+              <i data-lucide="rotate-ccw" class="icon-svg"></i>
+              Reset to Defaults
+            </button>
+            <button class="btn-primary" id="config-save-btn">
+              <i data-lucide="check" class="icon-svg"></i>
+              Save Configuration
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div id="integrations-view" class="main-view" style="display: none;">
     <div class="agents-layout">
-      <div class="agents-sidebar">
-         <button class="sub-tab integration-tab active" data-tab="websearch">Web Search</button>
-         <button class="sub-tab integration-tab" data-tab="webfetch">Web Content Fetch</button>
+      <div class="agents-sidebar integrations-sidebar">
+        <div class="sidebar-section-label">Web Capabilities</div>
+        <button class="sub-tab integration-tab active" data-tab="websearch">
+          <i data-lucide="search" class="icon-svg sm"></i>
+          <span>Web Search</span>
+        </button>
+        <button class="sub-tab integration-tab" data-tab="webfetch">
+          <i data-lucide="file-text" class="icon-svg sm"></i>
+          <span>Content Fetch</span>
+        </button>
       </div>
       
       <!-- Web Search Tab -->
       <div id="tab-websearch" class="tab-content integration-content active-tab">
-        <div class="config-panel premium-layout" style="width: 100%; max-width: 800px; margin: 0 auto;">
-          <div class="config-panel-inner">
-            <div class="config-header-main">
-              <h2 class="config-title">Web Search Configuration</h2>
-              <p class="config-subtitle">Select and configure the search provider used by the agent to browse the web.</p>
+        <div class="integrations-pane">
+          <div class="integrations-header">
+            <h2 class="integrations-title">Web Search Configuration</h2>
+            <p class="integrations-subtitle">Configure search engine APIs for the agent to lookup real-time information.</p>
+          </div>
+          
+          <div class="integrations-card">
+            <div class="integrations-card-header">
+              <i data-lucide="globe" class="icon-svg md card-icon"></i>
+              <div>
+                <h3>Search Provider</h3>
+                <p>Choose the search engine service to use for internet lookups.</p>
+              </div>
             </div>
             
-            <div class="config-card premium-card">
-              <div class="config-header" style="flex-direction: column; align-items: flex-start; gap: 12px;">
-                <div class="header-text" style="width: 100%;">
-                  <h3>Active Search Provider</h3>
-                  <p>Choose which API to use for the `search_web` tool.</p>
+            <div class="form-group dropdown-field">
+              <div class="custom-dropdown" id="dropdown-websearch" data-value="tavily">
+                <div class="dropdown-selected">
+                  <span class="selected-text">Tavily</span>
+                  <i data-lucide="chevron-down" class="icon-svg sm"></i>
                 </div>
-                <div class="form-group" style="width: 100%; margin: 0;">
-                  <div class="custom-dropdown" id="dropdown-websearch" data-value="tavily">
-                    <div class="dropdown-selected">
-                      <span class="selected-text">Tavily</span>
-                      <i data-lucide="chevron-down" class="icon-svg sm"></i>
-                    </div>
-                    <div class="dropdown-options">
-                      <div class="dropdown-option" data-value="tavily">Tavily</div>
-                      <div class="dropdown-option" data-value="jina">Jina Web Search</div>
-                      <div class="dropdown-option" data-value="brave">Brave Search API</div>
-                      <div class="dropdown-option" data-value="bing">Bing Search</div>
-                      <div class="dropdown-option" data-value="serp">SerpAPI</div>
-                    </div>
+                <div class="dropdown-options">
+                  <div class="dropdown-option" data-value="tavily">Tavily</div>
+                  <div class="dropdown-option" data-value="jina">Jina Web Search</div>
+                  <div class="dropdown-option" data-value="brave">Brave Search API</div>
+                  <div class="dropdown-option" data-value="bing">Bing Search</div>
+                  <div class="dropdown-option" data-value="serp">SerpAPI</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="integrations-card">
+            <div class="integrations-card-header">
+              <i data-lucide="key-round" class="icon-svg md card-icon"></i>
+              <div>
+                <h3>API Authentication Keys</h3>
+                <p>API keys are required to authenticate with search providers.</p>
+              </div>
+            </div>
+            
+            <div class="integrations-form-grid">
+              <div class="form-group">
+                <label>Tavily API Key</label>
+                <div class="modern-input-wrapper">
+                  <div class="modern-input-indicator"></div>
+                  <div class="modern-input-icon">
+                    <i data-lucide="search" class="icon-svg input-icon"></i>
                   </div>
+                  <input type="password" placeholder="tvly-..." id="apiKey-tavily" autocomplete="new-password" />
+                  <button class="toggle-visibility" type="button" aria-label="Toggle Visibility">
+                    <i data-lucide="eye" class="icon-svg sm"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Jina Search API Key</label>
+                <div class="modern-input-wrapper">
+                  <div class="modern-input-indicator"></div>
+                  <div class="modern-input-icon">
+                    <i data-lucide="sparkles" class="icon-svg input-icon"></i>
+                  </div>
+                  <input type="password" placeholder="jina_..." id="apiKey-jina" autocomplete="new-password" />
+                  <button class="toggle-visibility" type="button" aria-label="Toggle Visibility">
+                    <i data-lucide="eye" class="icon-svg sm"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Brave Search API Key</label>
+                <div class="modern-input-wrapper">
+                  <div class="modern-input-indicator"></div>
+                  <div class="modern-input-icon">
+                    <i data-lucide="shield" class="icon-svg input-icon"></i>
+                  </div>
+                  <input type="password" placeholder="BSA..." id="apiKey-brave" autocomplete="new-password" />
+                  <button class="toggle-visibility" type="button" aria-label="Toggle Visibility">
+                    <i data-lucide="eye" class="icon-svg sm"></i>
+                  </button>
                 </div>
               </div>
               
-              <div class="config-body" style="padding-top: 24px; margin-top: 16px;">
-                <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-primary);">Provider API Keys</h3>
-                
-                <div class="form-group">
-                  <label>Tavily API Key</label>
-                  <div class="input-wrapper premium-input">
-                    <i data-lucide="key" class="icon-svg input-icon"></i>
-                    <input type="password" placeholder="tvly-..." id="apiKey-tavily" />
+              <div class="form-group">
+                <label>Bing Search API Key</label>
+                <div class="modern-input-wrapper">
+                  <div class="modern-input-indicator"></div>
+                  <div class="modern-input-icon">
+                    <i data-lucide="globe" class="icon-svg input-icon"></i>
                   </div>
-                </div>
-
-                <div class="form-group" style="margin-top: 16px;">
-                  <label>Jina Search API Key</label>
-                  <div class="input-wrapper premium-input">
-                    <i data-lucide="key" class="icon-svg input-icon"></i>
-                    <input type="password" placeholder="jina_..." id="apiKey-jina" />
-                  </div>
-                </div>
-
-                <div class="form-group" style="margin-top: 16px;">
-                  <label>Brave Search API Key</label>
-                  <div class="input-wrapper premium-input">
-                    <i data-lucide="key" class="icon-svg input-icon"></i>
-                    <input type="password" placeholder="BSA..." id="apiKey-brave" />
-                  </div>
-                </div>
-                
-                <div class="form-group" style="margin-top: 16px;">
-                  <label>Bing Search API Key</label>
-                  <div class="input-wrapper premium-input">
-                    <i data-lucide="key" class="icon-svg input-icon"></i>
-                    <input type="password" placeholder="Key..." id="apiKey-bing" />
-                  </div>
-                </div>
-                
-                <div class="form-group" style="margin-top: 16px;">
-                  <label>SerpAPI Key</label>
-                  <div class="input-wrapper premium-input">
-                    <i data-lucide="key" class="icon-svg input-icon"></i>
-                    <input type="password" placeholder="Key..." id="apiKey-serp" />
-                  </div>
+                  <input type="password" placeholder="Key..." id="apiKey-bing" autocomplete="new-password" />
+                  <button class="toggle-visibility" type="button" aria-label="Toggle Visibility">
+                    <i data-lucide="eye" class="icon-svg sm"></i>
+                  </button>
                 </div>
               </div>
-
-              <div class="form-actions">
-                 <button class="btn-primary" id="save-integrations-websearch-btn"><i data-lucide="check" class="icon-svg sm"></i> Save Configuration</button>
+              
+              <div class="form-group">
+                <label>SerpAPI Key</label>
+                <div class="modern-input-wrapper">
+                  <div class="modern-input-indicator"></div>
+                  <div class="modern-input-icon">
+                    <i data-lucide="server" class="icon-svg input-icon"></i>
+                  </div>
+                  <input type="password" placeholder="Key..." id="apiKey-serp" autocomplete="new-password" />
+                  <button class="toggle-visibility" type="button" aria-label="Toggle Visibility">
+                    <i data-lucide="eye" class="icon-svg sm"></i>
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
+
+          <div class="integrations-actions">
+            <button class="btn-primary" id="save-integrations-websearch-btn">
+              <i data-lucide="check" class="icon-svg sm"></i>
+              <span>Save Configuration</span>
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Web Content Fetch Tab -->
       <div id="tab-webfetch" class="tab-content integration-content">
-        <div class="config-panel premium-layout" style="width: 100%; max-width: 800px; margin: 0 auto;">
-          <div class="config-panel-inner">
-            <div class="config-header-main">
-              <h2 class="config-title">Web Content Fetch Configuration</h2>
-              <p class="config-subtitle">Select and configure the provider used to fetch and read raw web pages.</p>
+        <div class="integrations-pane">
+          <div class="integrations-header">
+            <h2 class="integrations-title">Web Content Fetch Configuration</h2>
+            <p class="integrations-subtitle">Configure content reader APIs to download and extract readable text from web pages.</p>
+          </div>
+          
+          <div class="integrations-card">
+            <div class="integrations-card-header">
+              <i data-lucide="file-text" class="icon-svg md card-icon"></i>
+              <div>
+                <h3>Fetch Provider</h3>
+                <p>Choose the service used to retrieve raw page contents.</p>
+              </div>
             </div>
             
-            <div class="config-card premium-card">
-              <div class="config-header" style="flex-direction: column; align-items: flex-start; gap: 12px;">
-                <div class="header-text" style="width: 100%;">
-                  <h3>Active Fetch Provider</h3>
-                  <p>Choose which API to use for reading web pages.</p>
+            <div class="form-group dropdown-field">
+              <div class="custom-dropdown" id="dropdown-webfetch" data-value="jina">
+                <div class="dropdown-selected">
+                  <span class="selected-text">Jina Reader</span>
+                  <i data-lucide="chevron-down" class="icon-svg sm"></i>
                 </div>
-                <div class="form-group" style="width: 100%; margin: 0;">
-                  <div class="custom-dropdown" id="dropdown-webfetch" data-value="jina">
-                    <div class="dropdown-selected">
-                      <span class="selected-text">Jina Reader</span>
-                      <i data-lucide="chevron-down" class="icon-svg sm"></i>
-                    </div>
-                    <div class="dropdown-options">
-                      <div class="dropdown-option" data-value="jina">Jina Reader</div>
-                    </div>
-                  </div>
+                <div class="dropdown-options">
+                  <div class="dropdown-option" data-value="jina">Jina Reader</div>
                 </div>
-              </div>
-              
-              <div class="config-body" style="padding-top: 24px; margin-top: 16px;">
-                <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-primary);">Provider API Keys</h3>
-                
-                <div class="form-group">
-                  <label>Jina Reader API Key</label>
-                  <div class="input-wrapper premium-input">
-                    <i data-lucide="key" class="icon-svg input-icon"></i>
-                    <input type="password" placeholder="jina_..." id="apiKey-fetch-jina" />
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-actions">
-                 <button class="btn-primary" id="save-integrations-webfetch-btn"><i data-lucide="check" class="icon-svg sm"></i> Save Configuration</button>
               </div>
             </div>
+          </div>
+          
+          <div class="integrations-card">
+            <div class="integrations-card-header">
+              <i data-lucide="key-round" class="icon-svg md card-icon"></i>
+              <div>
+                <h3>API Authentication Key</h3>
+                <p>Enter the API key to authenticate with Jina Reader.</p>
+              </div>
+            </div>
+            
+            <div class="integrations-form-grid">
+              <div class="form-group">
+                <label>Jina Reader API Key</label>
+                <div class="modern-input-wrapper">
+                  <div class="modern-input-indicator"></div>
+                  <div class="modern-input-icon">
+                    <i data-lucide="file-text" class="icon-svg input-icon"></i>
+                  </div>
+                  <input type="password" placeholder="jina_..." id="apiKey-fetch-jina" autocomplete="new-password" />
+                  <button class="toggle-visibility" type="button" aria-label="Toggle Visibility">
+                    <i data-lucide="eye" class="icon-svg sm"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="integrations-actions">
+            <button class="btn-primary" id="save-integrations-webfetch-btn">
+              <i data-lucide="check" class="icon-svg sm"></i>
+              <span>Save Configuration</span>
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+
+
 </div>

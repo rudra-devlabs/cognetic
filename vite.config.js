@@ -12,25 +12,9 @@ export default defineConfig({
       // Tell Vite to ignore watching the src-tauri folder,
       // avoiding EBUSY errors on rapidly changing Rust build files
       ignored: ['**/src-tauri/**']
-    },
-    proxy: {
-      '/cors-proxy': {
-        target: 'https://integrate.api.nvidia.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/cors-proxy/, ''),
-        configure: (proxy, _options) => {
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            // Remove origin header so Nvidia doesn't complain
-            proxyReq.removeHeader('origin');
-          });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            // Manually inject CORS headers back to the browser
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-            res.setHeader('Access-Control-Allow-Headers', '*');
-          });
-        }
-      }
     }
+    // Note: the /cors-proxy block for Nvidia was removed.
+    // All LLM API calls (including Nvidia NIM) are now routed through the
+    // Rust perform_http_request command which bypasses CORS entirely.
   }
 });
