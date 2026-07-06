@@ -7,7 +7,6 @@
       <span class="logo-text">Cognetic</span>
     </div>
     <div class="nav-tabs">
-      <button class="nav-tab" id="nav-st-webagents-tab">Web Agents</button>
       <button class="nav-tab" id="nav-st-integrations-tab">Integrations</button>
       <button class="nav-tab" id="nav-st-agents-tab">Agents</button>
       <button class="nav-tab" id="nav-st-channels-tab">Channels</button>
@@ -37,8 +36,6 @@
       <div class="sidebar-section-label" style="margin-top:16px;">System</div>
       <button class="st-tab" data-tab="updates"><i data-lucide="download-cloud" class="icon-svg sm"></i> Updates</button>
       <button class="st-tab" data-tab="about"><i data-lucide="info" class="icon-svg sm"></i> About</button>
-      <div class="sidebar-section-label" style="margin-top:16px;">Bridge</div>
-      <button class="st-tab" data-tab="cdp"><i data-lucide="chrome" class="icon-svg sm"></i> Browser-CDP</button>
     </div>
 
     <!-- Main -->
@@ -172,6 +169,36 @@
               <div class="theme-name">Midnight</div>
               <div class="theme-check"></div>
             </div>
+            <div class="theme-option" data-theme="midnight-aurora">
+              <div class="theme-preview midnight-aurora-preview"></div>
+              <div class="theme-name">Midnight Aurora</div>
+              <div class="theme-check"></div>
+            </div>
+            <div class="theme-option" data-theme="tokyo-night">
+              <div class="theme-preview tokyo-preview"></div>
+              <div class="theme-name">Tokyo Night</div>
+              <div class="theme-check"></div>
+            </div>
+            <div class="theme-option" data-theme="dracula">
+              <div class="theme-preview dracula-preview"></div>
+              <div class="theme-name">Dracula</div>
+              <div class="theme-check"></div>
+            </div>
+            <div class="theme-option" data-theme="nord">
+              <div class="theme-preview nord-preview"></div>
+              <div class="theme-name">Nord</div>
+              <div class="theme-check"></div>
+            </div>
+            <div class="theme-option" data-theme="catppuccin">
+              <div class="theme-preview catppuccin-preview"></div>
+              <div class="theme-name">Catppuccin</div>
+              <div class="theme-check"></div>
+            </div>
+            <div class="theme-option" data-theme="one-dark">
+              <div class="theme-preview one-dark-preview"></div>
+              <div class="theme-name">One Dark</div>
+              <div class="theme-check"></div>
+            </div>
             <div class="theme-option" data-theme="light">
               <div class="theme-preview light-preview"></div>
               <div class="theme-name">Light</div>
@@ -184,11 +211,19 @@
           <div class="st-group-title">Accent Color</div>
           <div class="accent-picker">
             <button class="accent-swatch active" style="background:#2563eb" data-accent="blue" title="Blue"></button>
+            <button class="accent-swatch" style="background:#4f46e5" data-accent="indigo" title="Indigo"></button>
+            <button class="accent-swatch" style="background:#6d28d9" data-accent="violet" title="Violet"></button>
             <button class="accent-swatch" style="background:#7c3aed" data-accent="purple" title="Purple"></button>
-            <button class="accent-swatch" style="background:#059669" data-accent="emerald" title="Emerald"></button>
+            <button class="accent-swatch" style="background:#d946ef" data-accent="magenta" title="Magenta"></button>
+            <button class="accent-swatch" style="background:#db2777" data-accent="pink" title="Pink"></button>
+            <button class="accent-swatch" style="background:#e11d48" data-accent="rose" title="Rose"></button>
             <button class="accent-swatch" style="background:#dc2626" data-accent="red" title="Red"></button>
             <button class="accent-swatch" style="background:#d97706" data-accent="amber" title="Amber"></button>
-            <button class="accent-swatch" style="background:#db2777" data-accent="pink" title="Pink"></button>
+            <button class="accent-swatch" style="background:#ca8a04" data-accent="gold" title="Gold"></button>
+            <button class="accent-swatch" style="background:#65a30d" data-accent="lime" title="Lime"></button>
+            <button class="accent-swatch" style="background:#059669" data-accent="emerald" title="Emerald"></button>
+            <button class="accent-swatch" style="background:#0d9488" data-accent="teal" title="Teal"></button>
+            <button class="accent-swatch" style="background:#0891b2" data-accent="cyan" title="Cyan"></button>
           </div>
         </div>
 
@@ -654,63 +689,6 @@
             <span class="tech-badge">JavaScript</span>
             <span class="tech-badge">Lucide Icons</span>
             <span class="tech-badge">marked.js</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- BROWSER-CDP BRIDGE -->
-      <div class="st-panel" id="st-cdp">
-        <div class="st-section-header">
-          <h2 class="st-title">Browser-CDP Bridge</h2>
-          <p class="st-subtitle">Drive web-based LLMs (Google AI Studio) over Chrome DevTools Protocol — no API keys, your web login is the credential.</p>
-        </div>
-
-        <div class="st-group">
-          <div class="st-group-title">Connection</div>
-          <div class="st-row">
-            <div class="st-row-info">
-              <div class="st-row-label">Bridge Status</div>
-              <div class="st-row-desc">Current state of the CDP browser bridge</div>
-            </div>
-            <span class="cdp-status-pill" id="cdp-status-pill">
-              <span class="cdp-status-dot" id="cdp-status-dot"></span>
-              <span id="cdp-status-text">Disconnected</span>
-            </span>
-          </div>
-          <div class="st-row">
-            <div class="st-row-info">
-              <div class="st-row-label">Launch AI Studio Bridge</div>
-              <div class="st-row-desc">Start a dedicated Chrome window with a persistent profile. Log into Google once — stays logged in across sessions.</div>
-            </div>
-            <button class="cdp-action-btn primary" id="cdp-launch-btn">
-              <i data-lucide="rocket" class="icon-svg sm"></i> Launch
-            </button>
-          </div>
-          <div class="st-row">
-            <div class="st-row-info">
-              <div class="st-row-label">New Chat</div>
-              <div class="st-row-desc">Reset the AI Studio session and re-inject system instructions</div>
-            </div>
-            <button class="cdp-action-btn" id="cdp-newchat-btn">
-              <i data-lucide="plus-circle" class="icon-svg sm"></i> New Chat
-            </button>
-          </div>
-          <div class="st-row">
-            <div class="st-row-info">
-              <div class="st-row-label">Stop Bridge</div>
-              <div class="st-row-desc">Close the Chrome instance and free port 9222</div>
-            </div>
-            <button class="cdp-action-btn danger" id="cdp-stop-btn">
-              <i data-lucide="power" class="icon-svg sm"></i> Stop
-            </button>
-          </div>
-        </div>
-
-        <div class="st-group">
-          <div class="st-group-title">How it works</div>
-          <div class="cdp-info-block">
-            <p>The bridge launches a dedicated Chrome instance on <code>localhost:9222</code> using a persistent profile stored in your app data directory. The first time you launch, sign into Google AI Studio once — every subsequent launch keeps you logged in.</p>
-            <p>When you select the <strong>AI Studio (CDP)</strong> provider in the agent model picker, prompts are typed into the AI Studio web UI, the model's streamed output is intercepted, and any tool-call XML it emits is routed through Cognetic's existing tool engine — honoring your project's <code>base_paths</code> sandbox and the file-change tracker.</p>
           </div>
         </div>
       </div>

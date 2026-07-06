@@ -10,6 +10,7 @@ import { changeTracker } from '../../core/changeTracker.js';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { open } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 
 const typewriterTexts = [
   "Build with Cognetic",
@@ -101,6 +102,10 @@ const formatErrorAsCard = (errorMsg, context = "Error") => {
 
 // Global incognito state (in-memory only, never persisted)
 let isIncognitoMode = false;
+let indexingState = null; // null, 'indexing', 'done'
+let indexingStartTime = 0;
+let indexingTimeStr = '';
+
 // Stores one ephemeral incognito chat per context key (projectId or '__global__')
 const incognitoChatStore = new Map();
 
@@ -217,6 +222,22 @@ import { injectFileChangeBar } from './injectFileChangeBar.js';
 export function renderHome(container) {
     container.innerHTML = homeHtml;
     
+    // Listen for background indexing completion
+    listen('indexing-done', (e) => {
+        if (indexingState === 'indexing') {
+            const timeTaken = ((Date.now() - indexingStartTime) / 1000).toFixed(1);
+            indexingTimeStr = timeTaken;
+            indexingState = 'done';
+            if (typeof renderProjects === 'function') renderProjects();
+            
+            setTimeout(() => {
+                indexingState = null;
+                if (typeof renderProjects === 'function') renderProjects();
+            }, 3000);
+        }
+    });
+
+    let lastIndexedProjectId = null;
     // Initialize typewriter animation
     const typewriterElement = container.querySelector('#typewriter');
     if (typewriterElement) {
@@ -602,6 +623,28 @@ export function renderHome(container) {
                         <button class="icon-btn new-chat-in-proj-btn" title="New Chat"><i data-lucide="plus" class="icon-svg sm"></i></button>
                     </div>
                 `;
+                
+                groupEl.appendChild(headerEl);
+
+                if (proj.id === state.activeProjectId && indexingState) {
+                    const loaderEl = document.createElement('div');
+                    if (indexingState === 'indexing') {
+                        loaderEl.innerHTML = `
+                            <div class="indexing-card">
+                                <span class="indexing-spinner"></span> 
+                                <span>Indexing project...</span>
+                            </div>
+                        `;
+                    } else if (indexingState === 'done') {
+                        loaderEl.innerHTML = `
+                            <div class="indexing-card">
+                                <i data-lucide="check-circle" class="icon-svg sm" style="color: var(--success-color);"></i>
+                                <span>Indexed in ${indexingTimeStr}s</span>
+                            </div>
+                        `;
+                    }
+                    groupEl.appendChild(loaderEl);
+                }
                 
                 headerEl.querySelector('.delete-proj-btn')?.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1165,6 +1208,74 @@ function initTypewriter(element) {
             chatContainer.innerHTML = '';
             
             if (messages.length > 0) {
+                const parseSpecialContent = (text) => {
+                    let processedContent = text || '';
+                    processedContent = processedContent.replace(/<todo>([\s\S]*?)(?:<\/todo>|$)|(^|\n)[ \t]*(-\s*\[[ xX/]\](?:.|[\r\n])*?)(?=\n[ \t]*\n|$)/gi, (match, g1, g2, g3) => {
+                        const content = g1 !== undefined ? g1 : g3;
+                        const prefix = g2 || '';
+                        
+                        let normalizedContent = content.replace(/(?=\s*- \[[ xX/]\])/g, '\n');
+                        const lines = normalizedContent.trim().split('\n');
+                        
+                        let listHtml = '<div style="display: flex; flex-direction: column; gap: 8px;">';
+                        let hasItems = false;
+                        
+                        for (let line of lines) {
+                            line = line.trim();
+                            if (!line) continue;
+                            
+                            let isChecked = false;
+                            let isPartial = false;
+                            let textLine = line;
+                            
+                            if (line.startsWith('- [ ]')) {
+                                textLine = line.substring(5).trim();
+                                hasItems = true;
+                            } else if (line.match(/^- \[[xX]\]/)) {
+                                isChecked = true;
+                                textLine = line.substring(5).trim();
+                                hasItems = true;
+                            } else if (line.match(/^- \[\/\]/)) {
+                                isPartial = true;
+                                textLine = line.substring(5).trim();
+                                hasItems = true;
+                            } else {
+                                listHtml += `<div style="font-size: 0.9em; margin-bottom: 4px; color: var(--text-secondary);">${marked.parseInline(line)}</div>`;
+                                continue;
+                            }
+                            
+                            let icon = isChecked 
+                                ? `<i data-lucide="check-circle-2" class="icon-svg sm" style="color: var(--text-success); min-width: 16px;"></i>`
+                                : (isPartial 
+                                    ? `<i data-lucide="loader-2" class="icon-svg sm spin-anim" style="color: var(--text-warning); min-width: 16px;"></i>` 
+                                    : `<i data-lucide="circle" class="icon-svg sm" style="color: var(--text-secondary); min-width: 16px;"></i>`);
+
+                            listHtml += `<div style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.95em; padding: 6px 8px; border-radius: 6px; background: rgba(255,255,255,0.03);">
+                                <div style="margin-top: 2px;">${icon}</div>
+                                <div style="flex: 1; ${isChecked ? 'text-decoration: line-through; opacity: 0.6;' : 'color: var(--text-primary);'}">${marked.parseInline(textLine)}</div>
+                            </div>`;
+                        }
+                        listHtml += '</div>';
+
+                        if (!hasItems) {
+                            listHtml = `<div style="font-size: 0.95em;">${marked.parse(content)}</div>`;
+                        }
+
+                        return prefix + `<div class="todo-widget" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin: 16px 0; background: var(--bg-secondary);">
+                            <div style="font-weight: 600; margin-bottom: 12px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="list-todo" class="icon-svg sm" style="color: var(--text-blue);"></i> Execution Plan
+                            </div>
+                            ${listHtml}
+                        </div>`;
+                    });
+
+                    processedContent = processedContent.replace(/<tree_tool_call\s+dir=["']([^"']+)["']\s*\/?>/g, (match, dirpath) => {
+                        return `<div class="tree-dynamic-placeholder" data-dir="${dirpath.replace(/"/g, '&quot;')}"><div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);"><i data-lucide="cog" class="icon-svg sm spin-anim"></i><span>Loading tree...</span></div></div>`;
+                    });
+                    
+                    return DOMPurify.sanitize(marked.parse(processedContent), { ALLOW_DATA_ATTR: true });
+                };
+
                 messages.forEach((msg, i) => {
                     if (msg.role === 'tool') return;
                     
@@ -1193,6 +1304,19 @@ function initTypewriter(element) {
                                      case 'read_file': return [`Reading ${baseName(p.filepath) || 'file'}...`, `Read ${baseName(p.filepath) || 'file'}`];
                                      case 'write_file': return [`Writing ${baseName(p.filepath) || 'file'}...`, `Wrote ${baseName(p.filepath) || 'file'}`];
                                      case 'list_files': return [`Listing ${baseName(p.dirpath) || 'directory'}...`, `Listed ${baseName(p.dirpath) || 'directory'}`];
+                                     case 'edit_file': 
+                                         if (resultText !== undefined) {
+                                             const fName = baseName(p.filepath) || p.targetFile || 'file';
+                                             return [
+                                                 `Editing ${fName}...`, 
+                                                 resultText.includes('Successfully edited') 
+                                                     ? `Edited ${fName}`
+                                                     : (resultText.startsWith('Error') || resultText.includes('Failed')) 
+                                                         ? `Failed to edit ${fName}`
+                                                         : `Executed edit_file`
+                                             ];
+                                         }
+                                         return [`Editing ${baseName(p.filepath) || 'file'}...`, `Edited ${baseName(p.filepath) || 'file'}`];
                                      case 'glob': 
                                          if (resultText !== undefined) {
                                              const count = (!resultText || resultText.includes('No matches found')) ? 0 : resultText.split('\n').filter(l => l.trim()).length;
@@ -1409,13 +1533,12 @@ function initTypewriter(element) {
                             let stripped = msg.content ? msg.content.replace(/<tool\s+name=["']?([^"'>]+)["']?>([\s\S]*?)<\/tool>/gi, '').trim() : '';
                             let textHtml = '';
                             if (stripped) {
-                                textHtml = `<div style="margin-bottom: 12px; color: var(--text-primary); font-size: var(--font-size-base); line-height: 1.6;">${DOMPurify.sanitize(marked.parse(stripped))}</div>`;
+                                textHtml = `<div style="margin-bottom: 12px; color: var(--text-primary); font-size: var(--font-size-base); line-height: 1.6;">${parseSpecialContent(stripped)}</div>`;
                             }
                             
                             bubble.innerHTML = `${textHtml}<div style="display:flex;flex-direction:column;gap:6px;">${items.join('')}</div>`;
                         } else {
                              // Handle text content
-                             const html = msg.content ? marked.parse(msg.content) : '';
                              
                              let imagesHtml = '';
                              if (msg.images && msg.images.length > 0) {
@@ -1508,9 +1631,10 @@ function initTypewriter(element) {
                                  
                                  const itemsHtml = filesChanged.map(f => {
                                      let iconHtml = '';
-                                     if (f.name.endsWith('.html')) {
+                                     const fileName = f.path ? (f.path.includes('\\') ? f.path.split('\\').pop() : f.path.split('/').pop()) : 'unknown';
+                                     if (fileName.endsWith('.html')) {
                                          iconHtml = `<i data-lucide="code" class="icon-svg sm text-orange"></i>`;
-                                     } else if (f.name.endsWith('.js')) {
+                                     } else if (fileName.endsWith('.js')) {
                                          iconHtml = `<span class="text-yellow font-bold" style="font-size: 11px;">JS</span>`;
                                      } else {
                                          iconHtml = `<i data-lucide="file" class="icon-svg sm"></i>`;
@@ -1518,7 +1642,7 @@ function initTypewriter(element) {
                                      return `<div class="file-change-item">
                                          <div class="file-change-info">
                                              ${iconHtml}
-                                             <span class="file-name">${f.name}</span>
+                                             <span class="file-name">${fileName}</span>
                                              <span class="file-path" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">${f.path}</span>
                                          </div>
                                          <div class="file-change-stats">
@@ -1547,13 +1671,7 @@ function initTypewriter(element) {
                                  `;
                              }
                              
-                             bubble.innerHTML = imagesHtml + DOMPurify.sanitize(html);
-                             let processedContent = msg.content || '';
-                             processedContent = processedContent.replace(/<tree_tool_call\s+dir=["']([^"']+)["']\s*\/?>/g, (match, dirpath) => {
-                                 return `<div class="tree-dynamic-placeholder" data-dir="${dirpath.replace(/"/g, '&quot;')}"><div style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);"><i data-lucide="cog" class="icon-svg sm spin-anim"></i><span>Loading tree...</span></div></div>`;
-                             });
-                             
-                             bubble.innerHTML = imagesHtml + DOMPurify.sanitize(marked.parse(processedContent), { ALLOW_DATA_ATTR: true });
+                             bubble.innerHTML = imagesHtml + parseSpecialContent(msg.content);
                              if (fileChangesHtml) {
                                  row.dataset.fileChangesHtml = fileChangesHtml;
                              }
@@ -1812,9 +1930,12 @@ function initTypewriter(element) {
             
             if (!stateManager.isGenerating) return;
             
-            const results = await Promise.all(
-                toolCalls.map(tc => executeTool(tc, basePaths, stateManager.getCancelSignal(), stateManager.cancelController))
-            );
+            const results = [];
+            for (const tc of toolCalls) {
+                if (!stateManager.isGenerating) break;
+                const res = await executeTool(tc, basePaths, stateManager.getCancelSignal(), stateManager.cancelController);
+                results.push(res);
+            }
             
             if (!stateManager.isGenerating) {
                 stateManager.addMessage('assistant', '<div class="terminated-line"><span>terminated</span></div>');
@@ -2090,6 +2211,23 @@ function initTypewriter(element) {
 
     // Subscribe to messages changes to re-render chat
     const unsubscribeChat = stateManager.subscribe((state) => {
+        if (state.activeProjectId && state.activeProjectId !== lastIndexedProjectId) {
+            lastIndexedProjectId = state.activeProjectId;
+            const proj = state.projects.find(p => p.id === state.activeProjectId);
+            if (proj && proj.paths && proj.paths.length > 0) {
+                console.log('[Cognetic] Starting background indexing for:', proj.paths[0]);
+                indexingStartTime = Date.now();
+                indexingState = 'indexing';
+                if (typeof renderProjects === 'function') renderProjects();
+
+                invoke('start_indexing', { projectPath: proj.paths[0] }).then(result => {
+                    console.log('[Cognetic] Indexing result:', result);
+                }).catch(err => {
+                    console.warn('[Cognetic] Failed to start background indexing:', err);
+                });
+            }
+        }
+
         renderChatHistory();
         renderProjects();
         renderRecentConvos();

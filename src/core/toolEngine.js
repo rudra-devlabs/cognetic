@@ -5,6 +5,7 @@ import { SYSTEM_PROMPT } from '../config/systemPrompt.js';
 import { stateManager } from './state.js';
 import { llmService } from './llmService.js';
 import { changeTracker } from './changeTracker.js';
+import * as diffPkg from 'diff';
 
 // Legacy XML parsers removed for native JSON tool calling migration
 export function parseToolCall(text) { return null; }
@@ -114,16 +115,46 @@ async function _executeToolInternal(toolCall, basePaths = [], abortSignal = null
                 const time = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 return `Current Date: ${date}\nDay: ${day}\nTime: ${time}`;
                 
+            case 'semantic_search': {
+                const hits = await invoke('search_semantic', {
+                    projectPath: basePaths?.[0] || '',
+                    query: params.query,
+                    topK: params.top_k || 8
+                });
+                if (!hits || hits.length === 0) return "No semantic matches found.";
+                return hits.map((h, i) =>
+                    `[${i + 1}] ${h.file_path}:${h.start_line}-${h.end_line} (score: ${h.score.toFixed(3)})\n${h.content}`
+                ).join('\n\n');
+            }
+                
             case 'path_stats':
                 return await invoke('get_path_stats', { basePaths, path: await validatePath(params.path) });
                 
-            case 'read_file':
-                return await invoke('read_file_content', { basePaths, path: await validatePath(params.filepath) });
+            case 'read_file': {
+                const rfContent = await invoke('read_file_content', { basePaths, path: await validatePath(params.filepath) });
+                try {
+                    const rfImpact = await invoke('get_impact_radius', { projectPath: basePaths?.[0] || '', filepath: params.filepath });
+                    const rfImportedBy = rfImpact.imported_by?.length ? rfImpact.imported_by.join(', ') : 'none';
+                    const rfImports = rfImpact.imports?.length ? rfImpact.imports.join(', ') : 'none';
+                    return rfContent + `\n\n[Impact Radius: Imported by: ${rfImportedBy} | Imports: ${rfImports}]`;
+                } catch (e) {
+                    return rfContent;
+                }
+            }
                 
             case 'write_file': {
                 const wfPath = await validatePath(params.filepath);
                 let wfBefore = "";
                 try { wfBefore = await invoke('read_file_content', { basePaths, path: wfPath }); } catch(e) {}
+                
+                try {
+                    const { validateCode } = await import('./lspService.js');
+                    const lspResult = await validateCode(wfPath, params.content);
+                    if (!lspResult.ok) return lspResult.errorReport;
+                } catch (lspErr) {
+                    console.warn('[toolEngine] LSP validation skipped:', lspErr);
+                }
+
                 await invoke('write_file_content', { basePaths, path: wfPath, content: params.content });
                 changeTracker.record(wfPath, wfBefore, params.content);
                 return `Successfully wrote to ${params.filepath}`;
@@ -165,6 +196,15 @@ async function _executeToolInternal(toolCall, basePaths = [], abortSignal = null
                 // Replace the slice
                 lines.splice(s - 1, e - s + 1, params.content);
                 const afterWlContent = lines.join('\n');
+                
+                try {
+                    const { validateCode } = await import('./lspService.js');
+                    const lspResult = await validateCode(targetPath, afterWlContent);
+                    if (!lspResult.ok) return lspResult.errorReport;
+                } catch (lspErr) {
+                    console.warn('[toolEngine] LSP validation skipped:', lspErr);
+                }
+
                 await invoke('write_file_content', { basePaths, path: targetPath, content: afterWlContent });
                 changeTracker.record(targetPath, fileContent, afterWlContent);
                 return `Successfully replaced lines ${s} to ${e} in ${params.filepath}`;
@@ -205,15 +245,47 @@ async function _executeToolInternal(toolCall, basePaths = [], abortSignal = null
                     throw new Error("Must provide target_text for edit_file.");
                 }
 
+                // ── Hidden LSP Self-Correction Loop (Phase 1) ──────────────────
+                // Validate the spliced content in a headless Monaco instance BEFORE
+                // touching the disk. If the language server reports Error-level
+                // markers, return them as the tool result WITHOUT writing, forcing
+                // the LLM to autonomously fix its own mistake and retry.
+                try {
+                    const { validateCode } = await import('./lspService.js');
+                    const lspResult = await validateCode(editTargetPath, newContent);
+                    if (!lspResult.ok) {
+                        return lspResult.errorReport;
+                    }
+                } catch (lspErr) {
+                    // Fail-open: an unavailable LSP must never block legitimate edits
+                    console.warn('[toolEngine] LSP validation skipped:', lspErr);
+                }
+
                 await invoke('write_file_content', { basePaths, path: editTargetPath, content: newContent });
                 changeTracker.record(editTargetPath, editFileContent, newContent);
-                const allChanges = changeTracker.getChanges();
-                const lastChange = allChanges[allChanges.length - 1];
+                
+                const patch = diffPkg.createTwoFilesPatch(params.filepath, params.filepath, editFileContent, newContent, 'Original', 'Modified', { context: 3 });
+                let additions = 0;
+                let deletions = 0;
+                diffPkg.diffLines(editFileContent, newContent).forEach(part => {
+                    if (part.added) additions += part.count;
+                    if (part.removed) deletions += part.count;
+                });
+
+                let editText = `Successfully edited ${params.filepath}`;
+                try {
+                    const efImpact = await invoke('get_impact_radius', { projectPath: basePaths?.[0] || '', filepath: params.filepath });
+                    const efImportedBy = efImpact.imported_by?.length ? efImpact.imported_by.join(', ') : 'none';
+                    const efImports = efImpact.imports?.length ? efImpact.imports.join(', ') : 'none';
+                    editText += `\n\n[Impact Radius: Imported by: ${efImportedBy} | Imports: ${efImports}]`;
+                } catch (e) {
+                    // fail-open if indexer not ready
+                }
                 return { 
-                    text: `Successfully edited ${params.filepath}`, 
-                    patch: lastChange ? lastChange.patch : '', 
-                    additions: lastChange ? lastChange.additions : 0, 
-                    deletions: lastChange ? lastChange.deletions : 0 
+                    text: editText, 
+                    patch, 
+                    additions, 
+                    deletions 
                 };
             }
                 

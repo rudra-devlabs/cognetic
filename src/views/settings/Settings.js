@@ -50,7 +50,6 @@ export function renderSettings(container) {
     if (homeBtn) homeBtn.addEventListener('click', () => window.router.navigate('home'));
 
     const navMap = {
-        'nav-st-webagents-tab': 'webagents',
         'nav-st-integrations-tab': 'integrations',
         'nav-st-agents-tab': 'agents',
         'nav-st-channels-tab': 'channels',
@@ -62,9 +61,6 @@ export function renderSettings(container) {
         if (btn) btn.addEventListener('click', () => {
             if (route === 'integrations') {
                 window.cogneticOpenIntegrations = true;
-                window.router.navigate('agents');
-            } else if (route === 'webagents') {
-                window.cogneticOpenWebAgents = true;
                 window.router.navigate('agents');
             } else {
                 window.router.navigate(route);
@@ -190,87 +186,5 @@ export function renderSettings(container) {
         });
     });
 
-    // ── Browser-CDP Bridge ──────────────────────────────────────────
-    setupCdpBridge(container);
-
     if (window.lucide) window.lucide.createIcons({ root: container.querySelector('.view-settings') });
-}
-
-function setupCdpBridge(container) {
-    const launchBtn = container.querySelector('#cdp-launch-btn');
-    const newchatBtn = container.querySelector('#cdp-newchat-btn');
-    const stopBtn = container.querySelector('#cdp-stop-btn');
-    const statusPill = container.querySelector('#cdp-status-pill');
-    const statusText = container.querySelector('#cdp-status-text');
-
-    const setStatus = (state) => {
-        if (!statusPill || !statusText) return;
-        statusPill.classList.remove('connected', 'launching', 'disconnected');
-        if (state === 'connected') {
-            statusPill.classList.add('connected');
-            statusText.textContent = 'Connected';
-            if (launchBtn) launchBtn.disabled = true;
-            if (stopBtn) stopBtn.disabled = false;
-            if (newchatBtn) newchatBtn.disabled = false;
-        } else if (state === 'launching') {
-            statusPill.classList.add('launching');
-            statusText.textContent = 'Launching…';
-            if (launchBtn) launchBtn.disabled = true;
-        } else {
-            statusPill.classList.add('disconnected');
-            statusText.textContent = 'Disconnected';
-            if (launchBtn) launchBtn.disabled = false;
-            if (stopBtn) stopBtn.disabled = true;
-            if (newchatBtn) newchatBtn.disabled = true;
-        }
-    };
-
-    setStatus('disconnected');
-
-    if (launchBtn) {
-        launchBtn.addEventListener('click', async () => {
-            try {
-                setStatus('launching');
-                const { invoke } = await import('@tauri-apps/api/core');
-                await invoke('start_aistudio_bridge');
-            } catch (err) {
-                setStatus('disconnected');
-                alert(`Failed to launch bridge: ${err.message || err}`);
-            }
-        });
-    }
-
-    if (newchatBtn) {
-        newchatBtn.addEventListener('click', async () => {
-            try {
-                const { invoke } = await import('@tauri-apps/api/core');
-                await invoke('new_aistudio_chat');
-            } catch (err) {
-                alert(`Failed to start new chat: ${err.message || err}`);
-            }
-        });
-    }
-
-    if (stopBtn) {
-        stopBtn.addEventListener('click', async () => {
-            try {
-                const { invoke } = await import('@tauri-apps/api/core');
-                await invoke('stop_bridge');
-            } catch (err) {
-                console.error('Stop bridge failed:', err);
-            }
-        });
-    }
-
-    // Listen to bridge lifecycle events
-    import('@tauri-apps/api/event').then(({ listen }) => {
-        listen('dbcp-ready', () => setStatus('connected'));
-        listen('dbcp-stopped', () => setStatus('disconnected'));
-        listen('dbcp-status', (e) => {
-            const s = e.payload;
-            if (s === 'connected') setStatus('connected');
-            else if (s === 'launching') setStatus('launching');
-            else setStatus('disconnected');
-        });
-    }).catch(err => console.error('Failed to register bridge event listeners:', err));
 }

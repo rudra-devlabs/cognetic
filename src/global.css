@@ -236,13 +236,125 @@ body.sidebar-collapsed .nav-left {
   --border-active: #9ca3af;
 }
 
+/* Midnight Aurora — deep blue-black with cool cyan glow */
+[data-theme="midnight-aurora"] {
+  --bg-main: #06080f;
+  --bg-sidebar: #0a0e1a;
+  --bg-panel: #0f1424;
+  --bg-input: #0c1020;
+  --bg-hover: #161c2f;
+  --bg-active: #1f2740;
+  --bg-secondary: #121828;
+  --border-color: #1a2138;
+  --border-light: #232b48;
+  --border-active: #344070;
+}
+
+/* Tokyo Night — soft blue-purple with warm accents */
+[data-theme="tokyo-night"] {
+  --bg-main: #1a1b26;
+  --bg-sidebar: #16171e;
+  --bg-panel: #1f2230;
+  --bg-input: #1a1c28;
+  --bg-hover: #24283b;
+  --bg-active: #2a2f45;
+  --bg-secondary: #1d1f2b;
+  --border-color: #292e42;
+  --border-light: #3b4261;
+  --border-active: #565f89;
+  --text-primary: #c0caf5;
+  --text-secondary: #9aa5ce;
+  --text-muted: #565f89;
+  --accent-primary: #7aa2f7;
+}
+
+/* Dracula — purple-tinted dark with vivid contrast */
+[data-theme="dracula"] {
+  --bg-main: #282a36;
+  --bg-sidebar: #21222c;
+  --bg-panel: #2d2e3e;
+  --bg-input: #282a36;
+  --bg-hover: #44475a;
+  --bg-active: #4d5066;
+  --bg-secondary: #2d2e3e;
+  --border-color: #44475a;
+  --border-light: #6272a4;
+  --border-active: #7d89b5;
+  --text-primary: #f8f8f2;
+  --text-secondary: #bd93f9;
+  --text-muted: #6272a4;
+  --accent-primary: #bd93f9;
+}
+
+/* Nord — arctic blue-grey, calm and refined */
+[data-theme="nord"] {
+  --bg-main: #2e3440;
+  --bg-sidebar: #292e39;
+  --bg-panel: #3b4252;
+  --bg-input: #2e3440;
+  --bg-hover: #434c5e;
+  --bg-active: #4c566a;
+  --bg-secondary: #353c4a;
+  --border-color: #434c5e;
+  --border-light: #4c566a;
+  --border-active: #5e6779;
+  --text-primary: #eceff4;
+  --text-secondary: #d8dee9;
+  --text-muted: #7b88a1;
+  --accent-primary: #88c0d0;
+}
+
+/* Catppuccin Mocha — warm pastel dark, smooth and elegant */
+[data-theme="catppuccin"] {
+  --bg-main: #1e1e2e;
+  --bg-sidebar: #181825;
+  --bg-panel: #232336;
+  --bg-input: #1e1e2e;
+  --bg-hover: #313244;
+  --bg-active: #45475a;
+  --bg-secondary: #232336;
+  --border-color: #313244;
+  --border-light: #45475a;
+  --border-active: #585b70;
+  --text-primary: #cdd6f4;
+  --text-secondary: #bac2de;
+  --text-muted: #7f849c;
+  --accent-primary: #cba6f7;
+}
+
+/* One Dark Pro — Atom's iconic balanced dark */
+[data-theme="one-dark"] {
+  --bg-main: #282c34;
+  --bg-sidebar: #21252b;
+  --bg-panel: #2c313c;
+  --bg-input: #282c34;
+  --bg-hover: #3a3f4b;
+  --bg-active: #444856;
+  --bg-secondary: #2c313a;
+  --border-color: #3a3f4b;
+  --border-light: #444856;
+  --border-active: #5c6370;
+  --text-primary: #abb2bf;
+  --text-secondary: #9da5b4;
+  --text-muted: #5c6370;
+  --accent-primary: #61afef;
+}
+
 /* --- Accent Colors --- */
 [data-accent="blue"] { --accent-primary: #2563eb; --accent-primary-hover: #3b82f6; }
+[data-accent="indigo"] { --accent-primary: #4f46e5; --accent-primary-hover: #6366f1; }
+[data-accent="violet"] { --accent-primary: #6d28d9; --accent-primary-hover: #7c3aed; }
 [data-accent="purple"] { --accent-primary: #7c3aed; --accent-primary-hover: #8b5cf6; }
-[data-accent="emerald"] { --accent-primary: #059669; --accent-primary-hover: #10b981; }
+[data-accent="magenta"] { --accent-primary: #d946ef; --accent-primary-hover: #e879f9; }
+[data-accent="pink"] { --accent-primary: #db2777; --accent-primary-hover: #ec4899; }
+[data-accent="rose"] { --accent-primary: #e11d48; --accent-primary-hover: #f43f5e; }
 [data-accent="red"] { --accent-primary: #dc2626; --accent-primary-hover: #ef4444; }
 [data-accent="amber"] { --accent-primary: #d97706; --accent-primary-hover: #f59e0b; }
-[data-accent="pink"] { --accent-primary: #db2777; --accent-primary-hover: #ec4899; }
+[data-accent="gold"] { --accent-primary: #ca8a04; --accent-primary-hover: #eab308; }
+[data-accent="lime"] { --accent-primary: #65a30d; --accent-primary-hover: #84cc16; }
+[data-accent="emerald"] { --accent-primary: #059669; --accent-primary-hover: #10b981; }
+[data-accent="teal"] { --accent-primary: #0d9488; --accent-primary-hover: #14b8a6; }
+[data-accent="cyan"] { --accent-primary: #0891b2; --accent-primary-hover: #06b6d4; }
 
 
 /* --- Fonts --- */

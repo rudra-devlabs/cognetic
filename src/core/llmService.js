@@ -25,7 +25,8 @@ const OPENAI_TOOLS = [
     { type: "function", function: { name: "tree", description: "Render a directory tree", parameters: { type: "object", properties: { dirpath: { type: "string" } }, required: ["dirpath"] } } },
     { type: "function", function: { name: "get_current_dir", description: "Return current working directory", parameters: { type: "object", properties: {}, required: [] } } },
     { type: "function", function: { name: "date", description: "Return current date and time", parameters: { type: "object", properties: {}, required: [] } } },
-    { type: "function", function: { name: "run_command", description: "Run a shell command", parameters: { type: "object", properties: { command: { type: "string" }, args: { type: "string" }, cwd: { type: "string" } }, required: ["command"] } } }
+    { type: "function", function: { name: "run_command", description: "Run a shell command", parameters: { type: "object", properties: { command: { type: "string" }, args: { type: "string" }, cwd: { type: "string" } }, required: ["command"] } } },
+    { type: "function", function: { name: "semantic_search", description: "Search the vector database for semantically similar code using the fast AI indexer", parameters: { type: "object", properties: { query: { type: "string", description: "The natural language query or concept to search for" } }, required: ["query"] } } }
 ];
 
 const ANTHROPIC_TOOLS = OPENAI_TOOLS.map(t => ({
@@ -116,7 +117,7 @@ class LLMService {
             try {
                 const mainPath = basePaths[0];
                 if (Date.now() - treeCache.timestamp > 60000 || treeCache.path !== mainPath) {
-                    treeCache.content = await invoke('get_tree', { basePaths, dirpath: mainPath });
+                    treeCache.content = await invoke('get_tree', { dirpath: mainPath, basePaths });
                     treeCache.timestamp = Date.now();
                     treeCache.path = mainPath;
                 }
@@ -202,83 +203,110 @@ class LLMService {
         }
     }
 
+    async _withRetry(operation) {
+        const state = stateManager.getState();
+        const maxRetries = (state.agentSettings && typeof state.agentSettings.maxRetries === 'number') 
+            ? state.agentSettings.maxRetries 
+            : 5;
+            
+        let attempts = 0;
+        while (true) {
+            try {
+                return await operation();
+            } catch (error) {
+                attempts++;
+                const isRateLimit = error.message.includes('429') || error.message.toLowerCase().includes('too many requests') || error.message.toLowerCase().includes('rate limit');
+                if (attempts > maxRetries || !isRateLimit) {
+                    throw error;
+                }
+                const delay = Math.pow(2, attempts) * 1000;
+                console.warn(`Rate limited (429). Retrying in ${delay}ms... (Attempt ${attempts} of ${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+
     async _streamHttpRequest({ url, method, headers, body, abortSignal, onLine }) {
-        const streamId = generateStreamId();
-        let resolveDone;
-        let rejectDone;
-        const donePromise = new Promise((resolve, reject) => {
-            resolveDone = resolve;
-            rejectDone = reject;
-        });
-
-        let settled = false;
-        const settle = (fn, value) => {
-            if (settled) return;
-            settled = true;
-            fn(value);
-        };
-
-        let rawBody = '';
-        const unlistenChunk = await listen('llm-chunk', (event) => {
-            const payload = event.payload || {};
-            if (payload.stream_id !== streamId) return;
-            if (payload.line) {
-                rawBody += payload.line + '\n';
-                onLine(payload.line);
-            }
-        });
-
-        const unlistenDone = await listen('llm-done', (event) => {
-            const payload = event.payload || {};
-            if (payload.stream_id !== streamId) return;
-            cleanup();
-            if (payload.error) {
-                settle(rejectDone, new Error(`API Error (${payload.status || 0}): ${payload.error}`));
-            } else if (payload.status && payload.status >= 400) {
-                const errMsg = rawBody.substring(0, 500).trim() || 'Unknown Error';
-                settle(rejectDone, new Error(`HTTP ${payload.status} at ${url}: ${errMsg}`));
-            } else {
-                settle(resolveDone, { status: payload.status || 200 });
-            }
-        });
-
-        let abortHandler = null;
-        const cleanup = () => {
-            unlistenChunk();
-            unlistenDone();
-            if (abortSignal && abortHandler) {
-                abortSignal.removeEventListener('abort', abortHandler);
-            }
-        };
-
-        if (abortSignal) {
-            if (abortSignal.aborted) {
-                cleanup();
-                throw new DOMException('Aborted', 'AbortError');
-            }
-            abortHandler = () => {
-                invoke('cancel_stream_request', { streamId }).catch(console.error);
-                cleanup();
-                settle(rejectDone, new DOMException('Aborted', 'AbortError'));
-            };
-            abortSignal.addEventListener('abort', abortHandler);
-        }
-
-        try {
-            await invoke('stream_http_request', {
-                streamId,
-                url,
-                method,
-                headers,
-                body
+        const doStream = async () => {
+            const streamId = generateStreamId();
+            let resolveDone;
+            let rejectDone;
+            const donePromise = new Promise((resolve, reject) => {
+                resolveDone = resolve;
+                rejectDone = reject;
             });
-            const result = await donePromise;
-            cleanup();
-            return result;
-        } catch (error) {
-            cleanup();
-            throw error;
-        }
+
+            let settled = false;
+            const settle = (fn, value) => {
+                if (settled) return;
+                settled = true;
+                fn(value);
+            };
+
+            let rawBody = '';
+            const unlistenChunk = await listen('llm-chunk', (event) => {
+                const payload = event.payload || {};
+                if (payload.stream_id !== streamId) return;
+                if (payload.line) {
+                    rawBody += payload.line + '\n';
+                    onLine(payload.line);
+                }
+            });
+
+            const unlistenDone = await listen('llm-done', (event) => {
+                const payload = event.payload || {};
+                if (payload.stream_id !== streamId) return;
+                cleanup();
+                if (payload.error) {
+                    settle(rejectDone, new Error(`API Error (${payload.status || 0}): ${payload.error}`));
+                } else if (payload.status && payload.status >= 400) {
+                    const errMsg = rawBody.substring(0, 500).trim() || 'Unknown Error';
+                    settle(rejectDone, new Error(`HTTP ${payload.status} at ${url}: ${errMsg}`));
+                } else {
+                    settle(resolveDone, { status: payload.status || 200 });
+                }
+            });
+
+            let abortHandler = null;
+            const cleanup = () => {
+                unlistenChunk();
+                unlistenDone();
+                if (abortSignal && abortHandler) {
+                    abortSignal.removeEventListener('abort', abortHandler);
+                }
+            };
+
+            if (abortSignal) {
+                if (abortSignal.aborted) {
+                    cleanup();
+                    throw new DOMException('Aborted', 'AbortError');
+                }
+                abortHandler = () => {
+                    invoke('cancel_stream_request', { streamId }).catch(console.error);
+                    cleanup();
+                    settle(rejectDone, new DOMException('Aborted', 'AbortError'));
+                };
+                abortSignal.addEventListener('abort', abortHandler);
+            }
+
+            try {
+                await invoke('stream_http_request', {
+                    streamId,
+                    url,
+                    method,
+                    headers,
+                    body
+                });
+                const result = await donePromise;
+                cleanup();
+                return result;
+            } catch (error) {
+                cleanup();
+                throw error;
+            }
+        };
+
+        return await this._withRetry(doStream);
     }
 
     async analyzeIntent(userTask, modelName, abortSignal = null) {
@@ -594,7 +622,13 @@ needs_tools = true only if external execution (web search, terminal, filesystem,
         
         let response;
         try {
-            response = await invoke('perform_http_request', fetchOptions);
+            response = await this._withRetry(async () => {
+                const res = await invoke('perform_http_request', fetchOptions);
+                if (res.status === 429) {
+                    throw new Error(`API Error (429): Rate Limit Exceeded - ${res.text}`);
+                }
+                return res;
+            });
         } catch (e) {
             throw new Error(`Network/CORS Error: ${e.message || e}`);
         }
@@ -729,7 +763,13 @@ needs_tools = true only if external execution (web search, terminal, filesystem,
 
         let response;
         try {
-            response = await invoke('perform_http_request', fetchOptions);
+            response = await this._withRetry(async () => {
+                const res = await invoke('perform_http_request', fetchOptions);
+                if (res.status === 429) {
+                    throw new Error(`API Error (429): Rate Limit Exceeded - ${res.text}`);
+                }
+                return res;
+            });
         } catch (e) {
             throw new Error(`Network/CORS Error: ${e.message || e}`);
         }
@@ -835,7 +875,13 @@ needs_tools = true only if external execution (web search, terminal, filesystem,
 
         let response;
         try {
-            response = await invoke('perform_http_request', fetchOptions);
+            response = await this._withRetry(async () => {
+                const res = await invoke('perform_http_request', fetchOptions);
+                if (res.status === 429) {
+                    throw new Error(`API Error (429): Rate Limit Exceeded - ${res.text}`);
+                }
+                return res;
+            });
         } catch (e) {
             throw new Error(`Network/CORS Error: ${e.message || e}`);
         }
@@ -899,14 +945,7 @@ needs_tools = true only if external execution (web search, terminal, filesystem,
             return rest;
         })];
 
-        const defaultTools = [
-            { type: "function", function: { name: "search_web", description: "Search the web", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
-            { type: "function", function: { name: "fetch_url", description: "Fetch a URL", parameters: { type: "object", properties: { url: { type: "string" }, search_intent: { type: "string" } }, required: ["url", "search_intent"] } } },
-            { type: "function", function: { name: "next_search_batch", description: "Fetch next batch", parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] } } },
-            { type: "function", function: { name: "read_file", description: "Read a file", parameters: { type: "object", properties: { filepath: { type: "string" } }, required: ["filepath"] } } },
-            { type: "function", function: { name: "write_file", description: "Write a file", parameters: { type: "object", properties: { filepath: { type: "string" }, content: { type: "string" } }, required: ["filepath", "content"] } } },
-            { type: "function", function: { name: "run_command", description: "Run a command", parameters: { type: "object", properties: { command: { type: "string" }, args: { type: "string" }, cwd: { type: "string" } }, required: ["command"] } } }
-        ];
+        const defaultTools = OPENAI_TOOLS;
 
         const body = JSON.stringify({
             model: modelId,
@@ -1103,14 +1142,7 @@ needs_tools = true only if external execution (web search, terminal, filesystem,
 
         const headers = { 'Content-Type': 'application/json' };
 
-        const defaultTools = [
-            { name: "search_web", description: "Search the web", parameters: { type: "OBJECT", properties: { query: { type: "STRING" } }, required: ["query"] } },
-            { name: "fetch_url", description: "Fetch a URL", parameters: { type: "OBJECT", properties: { url: { type: "STRING" }, search_intent: { type: "STRING" } }, required: ["url", "search_intent"] } },
-            { name: "next_search_batch", description: "Fetch next batch", parameters: { type: "OBJECT", properties: { url: { type: "STRING" } }, required: ["url"] } },
-            { name: "read_file", description: "Read a file", parameters: { type: "OBJECT", properties: { filepath: { type: "STRING" } }, required: ["filepath"] } },
-            { name: "write_file", description: "Write a file", parameters: { type: "OBJECT", properties: { filepath: { type: "STRING" }, content: { type: "STRING" } }, required: ["filepath", "content"] } },
-            { name: "run_command", description: "Run a command", parameters: { type: "OBJECT", properties: { command: { type: "STRING" }, args: { type: "STRING" }, cwd: { type: "STRING" } }, required: ["command"] } }
-        ];
+        const defaultTools = OPENAI_TOOLS;
 
         const body = JSON.stringify({
             systemInstruction: { parts: [{ text: systemPrompt }] },
@@ -1166,3 +1198,5 @@ needs_tools = true only if external execution (web search, terminal, filesystem,
 }
 
 export const llmService = new LLMService();
+
+// Trigger Vite HMR

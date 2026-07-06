@@ -11,7 +11,6 @@ export function renderConnectors(container) {
     if (homeBtn) homeBtn.addEventListener('click', () => window.router.navigate('home'));
 
     const navMap = {
-        'nav-conn-webagents-tab': 'webagents',
         'nav-conn-integrations-tab': 'integrations',
         'nav-conn-agents-tab':   'agents',
         'nav-conn-channels-tab': 'channels',
@@ -23,9 +22,6 @@ export function renderConnectors(container) {
         if (btn) btn.addEventListener('click', () => {
             if (route === 'integrations') {
                 window.cogneticOpenIntegrations = true;
-                window.router.navigate('agents');
-            } else if (route === 'webagents') {
-                window.cogneticOpenWebAgents = true;
                 window.router.navigate('agents');
             } else {
                 window.router.navigate(route);

@@ -3,6 +3,8 @@ use std::sync::{Arc, Mutex, OnceLock};
 use tauri::Emitter;
 use tokio::sync::watch;
 
+mod indexer;
+
 // Global map to track running processes by their executionId
 static RUNNING_PROCESSES: OnceLock<Arc<Mutex<HashMap<String, u32>>>> = OnceLock::new();
 
@@ -873,7 +875,10 @@ pub fn run() {
             grep_search,
             get_tree,
             save_app_state,
-            load_app_state
+            load_app_state,
+            indexer::start_indexing,
+            indexer::search_semantic,
+            indexer::get_impact_radius
         ])
         .setup(|app| {
             if cfg!(debug_assertions) {

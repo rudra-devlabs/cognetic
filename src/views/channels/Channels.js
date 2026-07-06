@@ -14,7 +14,6 @@ export function renderChannels(container) {
 
     // Nav tab routing to other views
     const navMap = {
-        'nav-channels-webagents-tab': 'webagents',
         'nav-channels-integrations-tab': 'integrations',
         'nav-channels-agents-tab': 'agents',
         'nav-channels-connectors-tab': 'connectors',
@@ -26,9 +25,6 @@ export function renderChannels(container) {
         if (btn) btn.addEventListener('click', () => {
             if (route === 'integrations') {
                 window.cogneticOpenIntegrations = true;
-                window.router.navigate('agents');
-            } else if (route === 'webagents') {
-                window.cogneticOpenWebAgents = true;
                 window.router.navigate('agents');
             } else {
                 window.router.navigate(route);
